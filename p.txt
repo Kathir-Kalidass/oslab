@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
+int main() {
+    char *fifo = "/tmp/myfifo";
+    char write_msg[] = "Hello through FIFO!";
+    char read_msg[100];
+
+    // Create named pipe
+    if (mkfifo(fifo, 0666) == -1) {
+        perror("mkfifo");
+        // return 1; // FIFO might already exist
+    }
+
+    pid_t pid = fork();
+
+    if (pid > 0) {
+        // Parent writes
+        int fd = open(fifo, O_WRONLY);
+        write(fd, write_msg, sizeof(write_msg));
+        close(fd);
+    } else {
+        // Child reads
+        int fd = open(fifo, O_RDONLY);
+        read(fd, read_msg, sizeof(read_msg));
+        printf("Child received: %s\n", read_msg);
+        close(fd);
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <string.h>
+
+int main() {
+    char *fifo = "/tmp/myfifo";
+    char message[] = "Hello from FIFO writer!";
+
+    // Create named pipe if it doesn't exist
+    if (mkfifo(fifo, 0666) == -1) {
+        // Ignore if FIFO already exists
+        // perror("mkfifo");
+    }
+
+    int fd = open(fifo, O_WRONLY);
+    if (fd == -1) {
+        perror("open");
+        exit(1);
+    }
+
+    write(fd, message, strlen(message) + 1);
+    printf("Message sent: %s\n", message);
+
+    close(fd);
+    return 0;
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
+int main() {
+    char *fifo = "/tmp/myfifo";
+    char buffer[100];
+
+    int fd = open(fifo, O_RDONLY);
+    if (fd == -1) {
+        perror("open");
+        exit(1);
+    }
+
+    read(fd, buffer, sizeof(buffer));
+    printf("Message received: %s\n", buffer);
+
+    close(fd);
+    return 0;
+}

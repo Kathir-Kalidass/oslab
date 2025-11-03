@@ -1,0 +1,308 @@
+Basic UNIX Commands
+1. pwd – Print Working Directory
+
+Explanation: Shows the current directory you are in.
+
+Syntax:
+
+pwd
+
+
+Application: To check your current location in the filesystem.
+
+Output:
+
+/home/kathir/Documents
+
+2. ls – List Directory Contents
+
+Explanation: Lists files and directories in the current location.
+
+Syntax:
+
+ls [options] [directory]
+
+
+Options:
+
+ls -l → detailed list with permissions, size, time.
+
+ls -a → shows hidden files (starting with .).
+
+Application: To view contents of directories.
+
+Output:
+
+file1.txt   file2.c   myfolder   .hiddenfile
+
+3. cd – Change Directory
+
+Explanation: Used to navigate between directories.
+
+Syntax:
+
+cd [directory]
+
+
+Application: To move to another directory.
+
+Output:
+
+cd /home/kathir/Desktop
+
+4. cat – Concatenate & Display File
+
+Explanation: Displays contents of a file.
+
+Syntax:
+
+cat filename
+
+
+Application: To quickly read small text files.
+
+Output:
+
+$ cat hello.txt
+Hello, UNIX World!
+
+5. touch – Create Empty File
+
+Explanation: Creates a new empty file or updates timestamp of an existing file.
+
+Syntax:
+
+touch filename
+
+
+Application: To make new empty files.
+
+Output:
+
+$ touch newfile.txt
+$ ls
+newfile.txt
+
+6. mkdir – Make Directory
+
+Explanation: Creates a new directory.
+
+Syntax:
+
+mkdir directory_name
+
+
+Application: To organize files into folders.
+
+Output:
+
+$ mkdir projects
+$ ls
+projects
+
+7. rmdir – Remove Directory
+
+Explanation: Deletes an empty directory.
+
+Syntax:
+
+rmdir directory_name
+
+
+Application: To remove unused directories.
+
+Output:
+
+$ rmdir projects
+
+8. rm – Remove Files/Directories
+
+Explanation: Deletes files or directories (with -r).
+
+Syntax:
+
+rm filename
+rm -r directory
+
+
+Application: To delete files.
+
+Output:
+
+$ rm old.txt
+
+9. cp – Copy Files
+
+Explanation: Copies files or directories.
+
+Syntax:
+
+cp source destination
+cp -r dir1 dir2
+
+
+Application: To duplicate files or directories.
+
+Output:
+
+$ cp hello.txt backup.txt
+
+10. mv – Move or Rename
+
+Explanation: Moves or renames files.
+
+Syntax:
+
+mv oldname newname
+mv file /path/to/directory
+
+
+Application: To rename or organize files.
+
+Output:
+
+$ mv hello.txt greetings.txt
+
+11. man – Manual Pages
+
+Explanation: Displays help and documentation for commands.
+
+Syntax:
+
+man command
+
+
+Application: To understand how a command works.
+
+Output:
+
+$ man ls
+
+12. echo – Print Message
+
+Explanation: Prints text/variables to terminal.
+
+Syntax:
+
+echo "message"
+
+
+Application: To test shell scripts or print variables.
+
+Output:
+
+$ echo "Hello UNIX"
+Hello UNIX
+
+13. whoami – Current User
+
+Explanation: Shows the current logged-in user.
+
+Syntax:
+
+whoami
+
+
+Application: To know which user is active.
+
+Output:
+
+kathir
+
+14. date – Display Date & Time
+
+Explanation: Shows current system date and time.
+
+Syntax:
+
+date
+
+
+Application: To check date & time.
+
+Output:
+
+Fri Sep 5 21:15:42 IST 2025
+
+15. cal – Display Calendar
+
+Explanation: Shows calendar of current or given month/year.
+
+Syntax:
+
+cal [month] [year]
+
+
+Application: To check calendar.
+
+Output:
+
+$ cal 9 2025
+   September 2025
+Su Mo Tu We Th Fr Sa
+    1  2  3  4  5  6
+ 7  8  9 10 11 12 13
+...
+
+
+Would you like me to make this into a tabular format (Command | Explanation | Syntax | Application | Output) so it looks more like a notes sheet for exams/lab?
+
+You said:
+many more
+ChatGPT said:
+
+Perfect 👍
+I’ll extend the list with many more important UNIX commands you might need for labs, assignments, and exams. To make it structured, I’ll give you: Command | Explanation | Syntax | Application | Example Output in a tabular format.
+
+📘 Extended UNIX Commands with Examples
+Command	Explanation	Syntax	Application	Example Output
+pwd	Print current working directory	pwd	Check where you are in the filesystem	/home/kathir
+ls	List files & directories	ls [options]	See files in a folder	file1.txt mydir
+cd	Change directory	cd [path]	Navigate folders	Moves to /home
+cat	Show contents of a file	cat filename	Read small files	Hello World
+touch	Create empty file	touch filename	Make new files	Creates a.txt
+mkdir	Create new directory	mkdir dirname	Organize files	Creates folder docs
+rmdir	Remove empty directory	rmdir dirname	Delete empty folders	Directory removed
+rm	Remove files/directories	rm file / rm -r dir	Delete files or folders	File deleted
+cp	Copy files	cp src dest	Duplicate files	cp a.txt b.txt
+mv	Move or rename files	mv old new	Rename/move files	a.txt → b.txt
+man	Show manual/help	man command	Learn command usage	Opens manual page
+echo	Print message	echo "text"	Print variables, debug	Hello UNIX
+whoami	Show logged user	whoami	Check username	kathir
+date	Show date & time	date	Check system time	Fri Sep 5 21:30:00 IST 2025
+cal	Display calendar	cal [m] [y]	View month/year calendar	Shows calendar grid
+clear	Clear terminal screen	clear	Remove clutter in terminal	Screen cleared
+uname	Show OS info	uname -a	System details	Linux ubuntu 5.15...
+who	Show logged-in users	who	Check active users	kathir tty1 ...
+w	Show users + activity	w	See who is logged in & running	kathir tty pts/0 ...
+uptime	Show system uptime	uptime	See how long system running	21:40 up 2:15, 2 users
+ps	Show running processes	ps / ps aux	Monitor processes	PID TTY TIME CMD
+top	Show real-time processes	top	Monitor CPU/memory usage	Interactive process list
+kill	Kill process by ID	kill pid	Stop unwanted process	Process terminated
+history	Show executed commands	history	Recall past commands	List of commands
+head	Show first lines of file	head -n 5 file.txt	Preview file	Prints top 5 lines
+tail	Show last lines of file	tail -n 10 file.txt	View logs	Prints last 10 lines
+sort	Sort file contents	sort filename	Alphabetical order	Sorted list
+uniq	Remove duplicate lines	uniq filename	Clean duplicates	Prints unique lines
+grep	Search pattern in files	grep "text" file	Find words	Matches printed
+wc	Word/line/char count	wc file	Count size of text file	10 20 100 file
+find	Search files	find path -name "file"	Locate files	/home/kathir/a.txt
+locate	Search files (faster)	locate filename	Quick file lookup	Matches displayed
+df	Disk space usage	df -h	Check partitions usage	20G used, 10G free
+du	Disk usage of directory	du -sh folder	Measure folder size	120M folder
+chmod	Change file permissions	chmod 755 file	Manage permissions	File access updated
+chown	Change owner of file	chown user file	Assign ownership	Owner changed
+passwd	Change user password	passwd	Reset password	Prompts for new password
+ssh	Remote login	ssh user@host	Access remote server	Remote shell opens
+scp	Secure copy	scp file user@host:/path	Copy files remotely	File transferred
+tar	Archive files	tar -cvf a.tar files	Bundle files	Creates archive
+gzip	Compress file	gzip file.txt	Reduce file size	Creates file.txt.gz
+gunzip	Decompress file	gunzip file.gz	Extract compressed file	Original restored
+zip	Create zip archive	zip file.zip a.txt	Package files	Creates file.zip
+unzip	Extract zip archive	unzip file.zip	Extract files	Files extracted
+cmp	Compare two files	cmp file1 file2	Byte-by-byte comparison	Prints first difference
+diff	Show file differences	diff file1 file2	Compare text files	Shows line differences
+file	Detect file type	file filename	Identify format	ASCII text
+alias	Create shortcut command	alias ll='ls -l'	Custom commands	ll → ls -l
+unalias	Remove alias	unalias name	Delete shortcuts	Alias removed
+exit	Logout/close shell	exit	End session	Shell closed

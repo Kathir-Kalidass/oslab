@@ -1,0 +1,616 @@
+Skip to content
+You said:
+ipc methods in o
+ChatGPT said:
+It looks like your message got cut off — did you mean “IPC methods in OS” (Inter-Process Communication methods in Operating Systems)?
+
+If yes, here’s a clear and complete explanation 👇
+
+🧠 Inter-Process Communication (IPC) in OS
+Definition:
+IPC (Inter-Process Communication) is a mechanism that allows processes to exchange data and signals with each other — either within the same system or across systems in a network.
+
+⚙️ Types / Methods of IPC
+1. Pipes
+Used for unidirectional communication between processes.
+
+One process writes data to the pipe, and another reads from it.
+
+Often used between a parent and child process.
+
+Example (UNIX):
+
+pipe(fd);
+fork();
+write(fd[1], "Hello", 5);
+read(fd[0], buffer, 5);
+Types:
+
+Anonymous Pipe: For related processes (parent-child).
+
+Named Pipe (FIFO): For unrelated processes.
+
+2. Message Queues
+Data is sent in the form of messages.
+
+Allows bidirectional communication.
+
+Messages can have priorities.
+
+Useful for asynchronous communication.
+
+Example: msgget(), msgsnd(), msgrcv() in Linux.
+
+3. Shared Memory
+Fastest IPC mechanism.
+
+A portion of memory is shared between processes.
+
+Both processes can read/write to the same memory segment.
+
+Requires synchronization (using semaphores).
+
+Example: shmget(), shmat(), shmdt(), shmctl().
+
+4. Semaphores
+Used for process synchronization rather than data exchange.
+
+Prevents race conditions when multiple processes access shared resources.
+
+Two operations:
+
+wait() (P)
+
+signal() (V)
+
+5. Sockets
+Used for communication between processes over a network (can be local or remote).
+
+Supports both TCP (stream) and UDP (datagram) communication.
+
+Example: Client-server communication using socket(), bind(), connect(), send(), recv().
+
+6. Signals
+Used to notify a process that a particular event has occurred.
+
+Lightweight, asynchronous communication.
+
+Example: SIGINT, SIGKILL, SIGTERM.
+
+7. Remote Procedure Calls (RPC)
+Allows a program to execute procedures on another machine as if they were local.
+
+Abstracts network communication.
+
+🧩 Comparison Table
+Method	Direction	Speed	Used For	Related Processes?	Network Support
+Pipe	One-way	Medium	Parent-child comm.	Yes	No
+FIFO (Named Pipe)	Two-way	Medium	Unrelated processes	No	No
+Message Queue	Two-way	Medium	Asynchronous data exchange	No	No
+Shared Memory	Two-way	Fastest	Large data sharing	No	No
+Semaphore	N/A	Fast	Synchronization	No	No
+Socket	Two-way	Slower	Network / Client-Server apps	No	Yes
+Signal	One-way	Fast	Event notification	No	No
+RPC	Two-way	Medium	Remote procedure execution	No	Yes
+Would you like me to provide C programs demonstrating each IPC method (like pipe, shared memory, and message queue)?
+
+You said:
+Pipe	One-way	Medium	Parent-child comm.	Yes	No
+FIFO (Named Pipe)	Two-way	Medium	Unrelated processes	No	No
+Message Queue	Two-way	Medium	Asynchronous data exchange	No	No
+Shared Memory	Two-way	Fastest	Large data sharing	No	No
+Semaphore	N/A	Fast	Synchronization	No	No
+Socket	Two-way	Slower	Network / Client-Server apps	No	Yes    different programs in c for these
+ChatGPT said:
+Perfect 👍 — you want different C programs demonstrating each IPC method (Pipe, FIFO, Message Queue, Shared Memory, Semaphore, and Socket).
+
+Below are simple, working C programs for each IPC type, ready to run on Linux (like in your Termux or college lab system).
+
+🧩 1. Pipe (Anonymous Pipe) — One-way Communication
+File: pipe_demo.c
+
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+
+int main() {
+    int fd[2];
+    pid_t pid;
+    char msg[] = "Hello from parent";
+    char buffer[50];
+
+    pipe(fd);
+    pid = fork();
+
+    if (pid > 0) {  // Parent process
+        close(fd[0]); // Close reading end
+        write(fd[1], msg, strlen(msg) + 1);
+        close(fd[1]);
+    } else {         // Child process
+        close(fd[1]); // Close writing end
+        read(fd[0], buffer, sizeof(buffer));
+        printf("Child received: %s\n", buffer);
+        close(fd[0]);
+    }
+    return 0;
+}
+Run:
+
+gcc pipe_demo.c -o pipe_demo
+./pipe_demo
+🧩 2. FIFO (Named Pipe) — Between Unrelated Processes
+Writer Program (fifo_writer.c)
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+int main() {
+    int fd;
+    char *fifo = "/tmp/myfifo";
+    mkfifo(fifo, 0666);
+
+    char msg[] = "Message through FIFO";
+    fd = open(fifo, O_WRONLY);
+    write(fd, msg, sizeof(msg));
+    close(fd);
+
+    return 0;
+}
+Reader Program (fifo_reader.c)
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+int main() {
+    int fd;
+    char *fifo = "/tmp/myfifo";
+    char buffer[100];
+
+    fd = open(fifo, O_RDONLY);
+    read(fd, buffer, sizeof(buffer));
+    printf("Received from FIFO: %s\n", buffer);
+    close(fd);
+
+    return 0;
+}
+Run in two terminals:
+
+gcc fifo_writer.c -o writer
+gcc fifo_reader.c -o reader
+./reader &
+./writer
+🧩 3. Message Queue
+File: msgqueue_demo.c
+
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <string.h>
+
+struct msg_buffer {
+    long msg_type;
+    char msg_text[100];
+};
+
+int main() {
+    struct msg_buffer message;
+    key_t key = ftok("progfile", 65);
+    int msgid = msgget(key, 0666 | IPC_CREAT);
+
+    message.msg_type = 1;
+    strcpy(message.msg_text, "Hello Message Queue");
+    msgsnd(msgid, &message, sizeof(message), 0);
+    printf("Message sent: %s\n", message.msg_text);
+
+    msgrcv(msgid, &message, sizeof(message), 1, 0);
+    printf("Message received: %s\n", message.msg_text);
+
+    msgctl(msgid, IPC_RMID, NULL);
+    return 0;
+}
+🧩 4. Shared Memory
+File: shared_memory_demo.c
+
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <string.h>
+#include <unistd.h>
+
+int main() {
+    key_t key = ftok("shmfile", 65);
+    int shmid = shmget(key, 1024, 0666 | IPC_CREAT);
+    char *str = (char*) shmat(shmid, (void*)0, 0);
+
+    strcpy(str, "Shared Memory Example");
+    printf("Data written: %s\n", str);
+
+    shmdt(str);
+
+    str = (char*) shmat(shmid, (void*)0, 0);
+    printf("Data read: %s\n", str);
+    shmdt(str);
+    shmctl(shmid, IPC_RMID, NULL);
+    return 0;
+}
+🧩 5. Semaphore
+File: semaphore_demo.c
+
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <unistd.h>
+
+int main() {
+    key_t key = ftok("semfile", 65);
+    int semid = semget(key, 1, 0666 | IPC_CREAT);
+
+    semctl(semid, 0, SETVAL, 1);  // Initialize semaphore
+
+    struct sembuf p = {0, -1, SEM_UNDO}; // Wait
+    struct sembuf v = {0, 1, SEM_UNDO};  // Signal
+
+    printf("Entering critical section...\n");
+    semop(semid, &p, 1);
+    printf("Inside critical section\n");
+    sleep(2);
+    printf("Leaving critical section...\n");
+    semop(semid, &v, 1);
+
+    semctl(semid, 0, IPC_RMID);
+    return 0;
+}
+🧩 6. Socket (Client-Server Communication)
+Server Program (socket_server.c)
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+int main() {
+    int server_fd, new_socket;
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
+    char buffer[1024] = {0};
+    char *message = "Hello from Server";
+
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(8080);
+
+    bind(server_fd, (struct sockaddr*)&address, sizeof(address));
+    listen(server_fd, 3);
+    new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+
+    read(new_socket, buffer, 1024);
+    printf("Client: %s\n", buffer);
+    send(new_socket, message, strlen(message), 0);
+    printf("Message sent to client.\n");
+
+    close(new_socket);
+    close(server_fd);
+    return 0;
+}
+Client Program (socket_client.c)
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+int main() {
+    int sock = 0;
+    struct sockaddr_in serv_addr;
+    char buffer[1024] = {0};
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(8080);
+    inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
+
+    connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+    send(sock, "Hello from Client", strlen("Hello from Client"), 0);
+    read(sock, buffer, 1024);
+    printf("Server: %s\n", buffer);
+    close(sock);
+    return 0;
+}
+Run in two terminals:
+
+gcc socket_server.c -o server
+gcc socket_client.c -o client
+./server &
+./client
+Would you like me to bundle all 6 programs into a single downloadable ZIP file (for easy compilation and testing)?
+
+
+
+No file chosenNo file chosen
+ChatGPT can make mistakes. Check important info. See .
+//////////////////////////////////////////////////////
+🧠 Session 5 — Inter-Process Communication (IPC)
+
+📅 OS LAB (11-AUG-2025) — N Batch
+📄 Ref: SRD/OSLAB/9AUG25
+
+1️⃣ Description — IPC Methods and UNIX Commands
+📘 What is IPC?
+
+Inter-Process Communication (IPC) allows processes to communicate and synchronize their actions.
+In UNIX, IPC can be achieved using several mechanisms provided by the kernel.
+
+📗 Common IPC Methods
+IPC Method	Description	UNIX Commands / System Calls
+Pipe	One-way communication between related (parent-child) processes.	pipe(), read(), write(), close()
+FIFO (Named Pipe)	Two-way communication between unrelated processes.	mkfifo, open(), read(), write(), close()
+Message Queue	Asynchronous message passing using queues.	msgget(), msgsnd(), msgrcv(), msgctl()
+Shared Memory	Multiple processes share a common memory segment for fast communication.	shmget(), shmat(), shmdt(), shmctl()
+Semaphore	Synchronization tool to prevent race conditions.	semget(), semop(), semctl()
+Socket	Bidirectional communication (local or network).	socket(), bind(), connect(), listen(), accept(), send(), recv()
+2️⃣ Programs
+(1) Shared Memory using Bounded Buffer (Producer–Consumer IPC)
+
+File: shm_bounded_buffer.c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
+#include <unistd.h>
+
+#define BUFFER_SIZE 5
+
+struct buffer {
+    char data[BUFFER_SIZE][50];
+    int in, out, count;
+};
+
+void sem_wait(int semid, int semnum) {
+    struct sembuf op = {semnum, -1, 0};
+    semop(semid, &op, 1);
+}
+
+void sem_signal(int semid, int semnum) {
+    struct sembuf op = {semnum, 1, 0};
+    semop(semid, &op, 1);
+}
+
+int main() {
+    key_t key = ftok("shmfile", 65);
+    int shmid = shmget(key, sizeof(struct buffer), 0666 | IPC_CREAT);
+    int semid = semget(key, 3, 0666 | IPC_CREAT); // sem0=empty, sem1=full, sem2=mutex
+
+    semctl(semid, 0, SETVAL, BUFFER_SIZE); // empty
+    semctl(semid, 1, SETVAL, 0);           // full
+    semctl(semid, 2, SETVAL, 1);           // mutex
+
+    struct buffer *buf = (struct buffer*) shmat(shmid, NULL, 0);
+    buf->in = buf->out = buf->count = 0;
+
+    if (fork() == 0) {
+        // Producer
+        char *messages[] = {"Msg1", "Msg2", "Msg3", "Msg4", "Msg5"};
+        for (int i = 0; i < 5; i++) {
+            sem_wait(semid, 0);
+            sem_wait(semid, 2);
+
+            strcpy(buf->data[buf->in], messages[i]);
+            buf->in = (buf->in + 1) % BUFFER_SIZE;
+            buf->count++;
+            printf("Produced: %s\n", messages[i]);
+
+            sem_signal(semid, 2);
+            sem_signal(semid, 1);
+            sleep(1);
+        }
+    } else {
+        // Consumer
+        sleep(2);
+        for (int i = 0; i < 5; i++) {
+            sem_wait(semid, 1);
+            sem_wait(semid, 2);
+
+            printf("Consumed: %s\n", buf->data[buf->out]);
+            buf->out = (buf->out + 1) % BUFFER_SIZE;
+            buf->count--;
+
+            sem_signal(semid, 2);
+            sem_signal(semid, 0);
+            sleep(1);
+        }
+
+        shmdt(buf);
+        shmctl(shmid, IPC_RMID, NULL);
+        semctl(semid, 0, IPC_RMID);
+    }
+    return 0;
+}
+
+(2) Pipes (Named and Unnamed)
+A. Unnamed Pipe — Conveying a Message
+
+File: pipe_simple.c
+
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+
+int main() {
+    int fd[2];
+    char msg[] = "Hello from parent", buffer[50];
+    pipe(fd);
+
+    if (fork() == 0) {
+        close(fd[1]);
+        read(fd[0], buffer, sizeof(buffer));
+        printf("Child received: %s\n", buffer);
+        close(fd[0]);
+    } else {
+        close(fd[0]);
+        write(fd[1], msg, strlen(msg) + 1);
+        close(fd[1]);
+    }
+    return 0;
+}
+
+B. Unnamed Pipe — Conveying and Acknowledging
+
+File: pipe_ack.c
+
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+
+int main() {
+    int p1[2], p2[2];
+    pipe(p1); pipe(p2);
+    char msg[] = "Hi Child", buffer[50], ack[50];
+
+    if (fork() == 0) {
+        close(p1[1]);
+        close(p2[0]);
+        read(p1[0], buffer, sizeof(buffer));
+        printf("Child received: %s\n", buffer);
+        strcpy(ack, "Ack from child");
+        write(p2[1], ack, strlen(ack) + 1);
+    } else {
+        close(p1[0]);
+        close(p2[1]);
+        write(p1[1], msg, strlen(msg) + 1);
+        read(p2[0], ack, sizeof(ack));
+        printf("Parent got: %s\n", ack);
+    }
+    return 0;
+}
+
+C. Named Pipe (FIFO)
+
+File: fifo_comm.c
+
+#include <stdio.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
+int main() {
+    char *fifo = "/tmp/myfifo";
+    mkfifo(fifo, 0666);
+
+    if (fork() == 0) {
+        int fd = open(fifo, O_RDONLY);
+        char buffer[50];
+        read(fd, buffer, sizeof(buffer));
+        printf("Child received via FIFO: %s\n", buffer);
+        close(fd);
+    } else {
+        int fd = open(fifo, O_WRONLY);
+        write(fd, "Hello FIFO", strlen("Hello FIFO") + 1);
+        close(fd);
+    }
+    return 0;
+}
+
+(3) Message Queue — Exchange a Message
+
+File: msgqueue_exchange.c
+
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <string.h>
+
+struct msg_buffer {
+    long msg_type;
+    char msg_text[100];
+};
+
+int main() {
+    key_t key = ftok("progfile", 65);
+    int msgid = msgget(key, 0666 | IPC_CREAT);
+    struct msg_buffer message;
+
+    if (fork() == 0) {
+        message.msg_type = 1;
+        strcpy(message.msg_text, "Message from child");
+        msgsnd(msgid, &message, sizeof(message), 0);
+        printf("Child sent: %s\n", message.msg_text);
+    } else {
+        msgrcv(msgid, &message, sizeof(message), 1, 0);
+        printf("Parent received: %s\n", message.msg_text);
+        msgctl(msgid, IPC_RMID, NULL);
+    }
+    return 0;
+}
+
+(4) Sockets — Echo Server and Client
+Server (echo_server.c)
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+int main() {
+    int server_fd, client_fd;
+    struct sockaddr_in addr;
+    char buffer[1024];
+
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(8080);
+
+    bind(server_fd, (struct sockaddr*)&addr, sizeof(addr));
+    listen(server_fd, 3);
+    printf("Server waiting for connection...\n");
+
+    client_fd = accept(server_fd, NULL, NULL);
+    read(client_fd, buffer, sizeof(buffer));
+    printf("Server received: %s\n", buffer);
+
+    send(client_fd, buffer, strlen(buffer) + 1, 0);
+    printf("Echoed back: %s\n", buffer);
+
+    close(client_fd);
+    close(server_fd);
+    return 0;
+}
+
+Client (echo_client.c)
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+int main() {
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in serv_addr;
+    char buffer[1024] = "Hello Server", reply[1024];
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(8080);
+    inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
+
+    connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+    send(sock, buffer, strlen(buffer) + 1, 0);
+    read(sock, reply, sizeof(reply));
+    printf("Client received echo: %s\n", reply);
+    close(sock);
+    return 0;
+}
+
+✅ Summary
+IPC Type	Program File	Purpose
+Shared Memory (Bounded Buffer)	shm_bounded_buffer.c	Producer-Consumer communication
+Unnamed Pipe	pipe_simple.c / pipe_ack.c	Message & Acknowledgement
+Named Pipe (FIFO)	fifo_comm.c	Message exchange between unrelated processes
+Message Queue	msgqueue_exchange.c	Exchange message using queue
+Socket	echo_server.c, echo_client.c	Echo communication via TCP socket

@@ -1,0 +1,591 @@
+Shell Programming (Shell Scripting) in UNIX/Linux
+🔹 1. What is Shell Programming?
+
+Shell = Command interpreter (e.g., bash, sh, zsh, ksh).
+
+It allows users to interact with the operating system.
+
+Shell script = A file containing commands that the shell executes sequentially.
+
+📌 Uses:
+
+Automating tasks (backups, monitoring, batch jobs)
+
+System administration (user management, logs)
+
+Application deployment
+
+Text/data processing
+
+🔹 2. Writing a Shell Script
+
+Open an editor (vi, nano, gedit).
+
+Start with shebang line:
+
+#!/bin/bash
+
+
+This tells the OS to use bash to run the script.
+
+Write commands.
+
+Save file (e.g., myscript.sh).
+
+Make it executable:
+
+chmod +x myscript.sh
+
+
+Run it:
+
+./myscript.sh
+
+🔹 3. Basic Example
+
+📄 Script: hello.sh
+
+#!/bin/bash
+echo "Hello, $USER!"
+
+
+📤 Output:
+
+Hello, kathir
+
+🔹 4. Variables
+Defining and Using
+#!/bin/bash
+name="Kathir"
+age=20
+echo "My name is $name and I am $age years old."
+
+
+📤 Output:
+
+My name is Kathir and I am 20 years old.
+
+
+⚠️ No spaces around =.
+
+🔹 5. Command Substitution
+#!/bin/bash
+today=$(date)
+echo "Today is: $today"
+
+
+📤 Output:
+
+Today is: Fri Sep 05 10:20:35 IST 2025
+
+🔹 6. Positional Parameters
+
+Run a script with arguments:
+
+./myscript.sh arg1 arg2
+
+
+Inside script:
+
+#!/bin/bash
+echo "First: $1"
+echo "Second: $2"
+echo "All args: $@"
+echo "Number of args: $#"
+
+
+📤 Run:
+
+./myscript.sh apple banana
+
+
+📤 Output:
+
+First: apple
+Second: banana
+All args: apple banana
+Number of args: 2
+
+🔹 7. User Input
+#!/bin/bash
+echo "Enter your name:"
+read name
+echo "Hello, $name!"
+
+
+📤 Run:
+
+Enter your name:
+Kathir
+Hello, Kathir!
+
+🔹 8. Conditional Statements
+If
+#!/bin/bash
+num=10
+if [ $num -gt 5 ]
+then
+   echo "$num is greater than 5"
+fi
+
+
+📤 Output:
+
+10 is greater than 5
+
+If-Else
+#!/bin/bash
+echo "Enter a number:"
+read n
+if [ $n -gt 0 ]
+then
+   echo "Positive"
+else
+   echo "Non-positive"
+fi
+
+If-Elif-Else
+#!/bin/bash
+echo "Enter marks:"
+read m
+if [ $m -ge 90 ]
+then
+   echo "Grade: A"
+elif [ $m -ge 75 ]
+then
+   echo "Grade: B"
+else
+   echo "Grade: C"
+fi
+
+🔹 9. Loops
+For Loop
+#!/bin/bash
+for i in 1 2 3 4 5
+do
+   echo "Number: $i"
+done
+
+
+📤 Output:
+
+Number: 1
+Number: 2
+Number: 3
+Number: 4
+Number: 5
+
+
+👉 Loop using range:
+
+for i in {1..5}
+do
+   echo "Count: $i"
+done
+
+While Loop
+#!/bin/bash
+count=1
+while [ $count -le 5 ]
+do
+   echo "Count = $count"
+   count=$((count+1))
+done
+
+
+📤 Output:
+
+Count = 1
+Count = 2
+Count = 3
+Count = 4
+Count = 5
+
+Until Loop
+#!/bin/bash
+n=1
+until [ $n -gt 3 ]
+do
+   echo "n = $n"
+   ((n++))
+done
+
+
+📤 Output:
+
+n = 1
+n = 2
+n = 3
+
+🔹 10. Case Statement
+#!/bin/bash
+echo "Enter choice:"
+read ch
+case $ch in
+  1) echo "Option 1";;
+  2) echo "Option 2";;
+  3) echo "Option 3";;
+  *) echo "Invalid";;
+esac
+
+
+📤 Run:
+
+Enter choice:
+2
+Option 2
+
+🔹 11. Functions
+#!/bin/bash
+greet() {
+   echo "Hello, $1!"
+}
+greet Kathir
+greet Alice
+
+
+📤 Output:
+
+Hello, Kathir!
+Hello, Alice!
+
+🔹 12. Arrays
+#!/bin/bash
+arr=(apple banana cherry)
+echo "First: ${arr[0]}"
+echo "All: ${arr[@]}"
+
+
+📤 Output:
+
+First: apple
+All: apple banana cherry
+
+🔹 13. File Handling
+Check file existence
+#!/bin/bash
+file="students.txt"
+if [ -f "$file" ]; then
+   echo "$file exists"
+else
+   echo "$file not found"
+fi
+
+Read file line by line
+#!/bin/bash
+while read line; do
+   echo "Line: $line"
+done < students.txt
+
+🔹 14. Operators
+
+Arithmetic: + - * / %
+
+String: =, !=, <, >
+
+File test:
+
+-f file → regular file
+
+-d dir → directory
+
+-r file → readable
+
+-w file → writable
+
+-x file → executable
+
+-s file → non-empty
+
+Conditional Statements in Shell
+
+In Bash, condition checking is done with:
+
+Single bracket [ condition ]
+
+Double bracket [[ condition ]] (modern, supports regex, better operators)
+
+Arithmetic evaluation (( expression ))
+
+1️⃣ IF Statement Variants
+(a) Simple If
+if [ condition ]
+then
+   command
+fi
+
+
+Example:
+
+num=10
+if [ $num -gt 5 ]
+then
+   echo "$num is greater than 5"
+fi
+
+
+📤 Output:
+
+10 is greater than 5
+
+(b) If-Else
+if [ condition ]
+then
+   command1
+else
+   command2
+fi
+
+
+Example:
+
+n=0
+if [ $n -gt 0 ]
+then
+   echo "Positive"
+else
+   echo "Non-Positive"
+fi
+
+(c) If-Elif-Else
+if [ condition1 ]
+then
+   command1
+elif [ condition2 ]
+then
+   command2
+else
+   command3
+fi
+
+
+Example:
+
+marks=78
+if [ $marks -ge 90 ]; then
+    echo "Grade: A"
+elif [ $marks -ge 75 ]; then
+    echo "Grade: B"
+else
+    echo "Grade: C"
+fi
+
+(d) Inline If (One-liner)
+[ $num -gt 5 ] && echo "Greater" || echo "Smaller"
+
+
+📤 Output:
+
+Greater
+
+(e) Using [[ ... ]]
+word="kathir"
+if [[ $word == k* ]]; then
+   echo "Starts with k"
+fi
+
+(f) Using Arithmetic (( ))
+n=7
+if (( n % 2 == 0 )); then
+   echo "Even"
+else
+   echo "Odd"
+fi
+
+
+📤 Output:
+
+Odd
+
+2️⃣ CASE Statement
+
+Syntax:
+
+case $var in
+   pattern1) command1;;
+   pattern2) command2;;
+   *) default;;
+esac
+
+
+Example:
+
+read -p "Enter choice: " ch
+case $ch in
+  1) echo "One";;
+  2|3) echo "Two or Three";;
+  *) echo "Invalid";;
+esac
+
+
+📤 Run:
+
+Enter choice: 3
+Two or Three
+
+🟢 Loops in Shell
+1️⃣ For Loop Variants
+(a) Basic For Loop
+for i in 1 2 3 4 5
+do
+   echo "Number: $i"
+done
+
+(b) Range Expansion
+for i in {1..5}
+do
+   echo $i
+done
+
+(c) C-style For Loop
+for ((i=1; i<=5; i++))
+do
+   echo $i
+done
+
+(d) For Loop over Files
+for file in *.txt
+do
+   echo "Processing $file"
+done
+
+2️⃣ While Loop Variants
+(a) Basic
+count=1
+while [ $count -le 5 ]
+do
+   echo "Count = $count"
+   ((count++))
+done
+
+(b) Reading File
+while read line
+do
+   echo "Line: $line"
+done < students.txt
+
+(c) Infinite Loop
+while true
+do
+   echo "Running... Press Ctrl+C to stop"
+   sleep 1
+done
+
+3️⃣ Until Loop
+
+Runs until condition is true.
+
+n=1
+until [ $n -gt 3 ]
+do
+   echo "n = $n"
+   ((n++))
+done
+
+
+📤 Output:
+
+n = 1
+n = 2
+n = 3
+
+🟢 File Handling in Shell
+1️⃣ File Test Operators
+Operator	Meaning
+-f file	True if file exists and is a regular file
+-d dir	True if directory exists
+-e file	True if file exists (any type)
+-s file	True if file exists and not empty
+-r file	File is readable
+-w file	File is writable
+-x file	File is executable
+2️⃣ Examples
+(a) Check if file exists
+file="data.txt"
+if [ -f "$file" ]; then
+   echo "$file exists"
+else
+   echo "$file not found"
+fi
+
+(b) Check directory
+dir="/etc"
+if [ -d "$dir" ]; then
+   echo "$dir is a directory"
+fi
+
+(c) Append to file
+echo "New line" >> data.txt
+
+(d) Read file line by line
+while IFS= read -r line
+do
+   echo "Line: $line"
+done < data.txt
+
+(e) Write output of loop into file
+for i in {1..5}
+do
+   echo "Line $i"
+done > output.txt
+
+
+📄 output.txt:
+
+Line 1
+Line 2
+Line 3
+Line 4
+Line 5
+
+(f) Count lines, words, chars
+wc -l data.txt   # count lines
+wc -w data.txt   # count words
+wc -c data.txt   # count chars
+
+(g) Delete empty files in directory
+for f in *; do
+   if [ -f "$f" ] && [ ! -s "$f" ]; then
+      echo "Deleting empty file: $f"
+      rm "$f"
+   fi
+done
+
+🟢 Placing Conditions in Different Locations
+(a) Condition inside loop
+for i in {1..5}; do
+   if (( i%2==0 )); then
+      echo "$i is even"
+   fi
+done
+
+(b) Loop inside condition
+if [ -d "logs" ]; then
+   for f in logs/*.log; do
+      echo "Processing $f"
+   done
+fi
+
+(c) Nested Loops + Conditions
+for user in Alice Bob; do
+   for sub in Math Science; do
+      marks=$((RANDOM%100))
+      if [ $marks -ge 50 ]; then
+         echo "$user passed $sub with $marks"
+      else
+         echo "$user failed $sub with $marks"
+      fi
+   done
+done
+
+
+📤 Sample Output:
+
+Alice passed Math with 72
+Alice failed Science with 43
+Bob passed Math with 81
+Bob failed Science with 21
+
+
+???????????????????????????????????????
+

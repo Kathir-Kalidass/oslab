@@ -1,0 +1,649 @@
+Skip to content
+You said:
+Basic UNIX commands   in detall give different possibles
+ChatGPT said:
+
+Thought for 4 seconds
+Basic UNIX commands — detailed reference with common options & examples
+Nice — here’s a compact but thorough cheat-sheet of basic UNIX commands, grouped by purpose, with common flags/options and practical examples you can copy-paste. I’ll show multiple useful variants where appropriate.
+
+Tip: for any command below run man <command> (or --help) to see full options on your system.
+
+Files & directories
+ls — list files
+
+ls -l long listing (permissions, owner, size, mtime)
+
+ls -a show hidden (.*)
+
+ls -lh human sizes (KB/MB)
+
+ls -R recursive.
+
+Example: ls -la ~/projects
+
+cd — change directory
+
+cd → home, cd - → previous dir, cd .. → parent.
+
+Example: cd /var/log
+
+pwd — print working directory
+
+Example: pwd
+
+mkdir — make directories
+
+mkdir dir
+
+mkdir -p a/b/c create parents.
+
+Example: mkdir -p ~/notes/2025
+
+rmdir — remove empty dir
+
+Use rm -r to remove non-empty dirs (careful).
+
+touch — create empty file or update mtime
+
+touch file.txt
+
+cp — copy files/directories
+
+cp src dest
+
+cp -r dir1 dir2 recursive
+
+cp -i interactive (confirm overwrite)
+
+Example: cp -a srcdir backup/ (-a preserves attributes)
+
+mv — move/rename
+
+mv old new
+
+mv -i file /dest/ (interactive)
+
+rm — remove files/directories
+
+rm file
+
+rm -i file (confirm)
+
+rm -r dir recursive
+
+rm -rf dir force recursive (dangerous)
+
+ln — create links
+
+ln file linkname (hard link)
+
+ln -s /path/to/file symlink (symbolic link)
+
+Viewing file contents
+cat file — dump file to stdout
+
+cat file1 file2 > merged
+
+tac file — show lines in reverse order
+
+nl file — number lines
+
+more file / less file — pager (less is preferred: scroll, search with /)
+
+Example: less /var/log/syslog
+
+head / tail — start/end of file
+
+head -n 20 file first 20 lines
+
+tail -f logfile follow appended lines (live view)
+
+tail -n +10 file from line 10 onward
+
+split — split files into parts
+
+split -b 10M bigfile part_
+
+Searching & finding
+find — find files by name, type, mtime, size, exec actions
+
+find . -name "*.log"
+
+find / -type f -mtime -7 (modified within 7 days)
+
+find . -size +10M (bigger than 10 MB)
+
+find . -name "*.py" -exec wc -l {} \;
+
+locate — fast DB-backed search (use updatedb to refresh)
+
+locate bashrc
+
+grep — search text patterns in files
+
+grep "pattern" file
+
+grep -r "TODO" . recursive
+
+grep -n show line numbers
+
+grep -i case-insensitive
+
+grep -E extended regex (same as egrep)
+
+grep -v invert (show non-matching lines)
+
+Example: grep -Rin "TODO" ~/projects
+
+ack / rg (ripgrep) — faster code searching (if installed)
+
+Text processing
+awk — field processing, reporting
+
+Example: awk '{print $1, $3}' file (prints columns)
+
+awk -F, '{print $2}' file.csv (set delimiter)
+
+sed — stream editor (search/replace)
+
+sed 's/foo/bar/g' file (replace)
+
+sed -n '1,10p' file (print range)
+
+cut — extract columns
+
+cut -d: -f1 /etc/passwd (delimiter : field 1)
+
+sort — sort lines (-n numeric, -r reverse)
+
+Example: sort -n scores.txt
+
+uniq — remove adjacent duplicates (use with sort)
+
+sort file | uniq -c (count unique lines)
+
+tr — translate/replace characters
+
+tr '[:lower:]' '[:upper:]' uppercase
+
+wc — word/line/byte counts
+
+wc -l file lines, wc -w words
+
+Permissions & ownership
+chmod — change permissions
+
+Symbolic: chmod u+rwx,g+rx,o-rwx file
+
+Numeric: chmod 755 file (owner rwx, group r-x, other r-x)
+
+Example: chmod 644 file.txt (rw-r--r--)
+
+chown — change owner and group
+
+chown user file
+
+chown user:group file
+
+chown -R user:group dir recursive
+
+chgrp — change group
+
+chgrp staff file
+
+umask — default file creation mask
+
+umask 022 → new files readable by others
+
+Processes & job control
+ps — process snapshot
+
+ps aux full list with owners
+
+ps -ef alternative format
+
+top / htop — interactive process viewer (htop nicer if installed)
+
+Press q to quit.
+
+kill — send signals
+
+kill PID (SIGTERM)
+
+kill -9 PID (SIGKILL — force)
+
+pkill name kill by process name
+
+killall name kill all processes with name
+
+Job control (shell builtin): &, jobs, fg, bg, disown
+
+command & run in background
+
+jobs list stopped/background jobs
+
+fg %1 bring job 1 to foreground
+
+nice / renice — set process priority
+
+nice -n 10 command lowers priority
+
+nohup — run process immune to hangup: nohup cmd &
+
+Networking (basic)
+ping host — check connectivity
+
+ssh user@host — remote shell
+
+scp file user@host:/path — copy over SSH
+
+sftp user@host — interactive file transfer
+
+curl / wget — download or HTTP requests
+
+curl -I https://example.com show headers
+
+curl -o file http://... download
+
+netstat -tulnp or ss -tulnp — list listening ports/processes
+
+ifconfig (deprecated) / ip addr — network interfaces
+
+Compression & archiving
+tar — archive
+
+Create: tar -cvf archive.tar files/
+
+Create gzipped: tar -czvf archive.tar.gz dir/
+
+Extract: tar -xzvf archive.tar.gz
+
+-C /target change directory while extracting
+
+gzip / gunzip — compress/decompress single files
+
+bzip2, xz — other compressors
+
+zip / unzip — Windows-compatible archives
+
+Disk & filesystem
+df -h — disk free space (human readable)
+
+du -sh dir — disk usage (summary)
+
+mount / umount — mount/umount filesystems
+
+fsck — filesystem check (use carefully)
+
+stat file — detailed file metadata
+
+file filename — show file type (text, ELF, image, etc.)
+
+Users & accounts
+whoami — current user
+
+id — user and group ids
+
+who / w — who is logged in (and what they’re doing)
+
+passwd — change password (interactive)
+
+su - — switch user (to root if omitted)
+
+sudo command — run command as root (if permitted)
+
+Shell & environment
+echo $VAR — print env var
+
+export VAR=value — set env var for subprocesses
+
+env — list environment variables
+
+set — shell variables and options
+
+alias / unalias — create shortcuts
+
+alias ll='ls -lah'
+
+Wildcards & globbing: * ? [a-z]
+
+Redirection:
+
+> overwrite, >> append, < stdin
+
+Pipe: cmd1 | cmd2 (connect stdout→stdin)
+
+Redirect stderr: 2>err.log, both: &>all.log or >file 2>&1
+
+System info & admin
+uname -a — kernel & system info
+
+uptime — how long system has been running
+
+dmesg — kernel messages (use dmesg | less)
+
+journalctl — systemd journal logs (if applicable)
+
+shutdown -h now, reboot
+
+Package managers (system dependent)
+Debian/Ubuntu: apt update, apt install pkg
+
+RedHat/CentOS: yum / dnf
+
+macOS: brew (Homebrew)
+(Commands vary by distro — check local docs.)
+
+Editors
+vi / vim — powerful modal editor (steep learning curve)
+
+nano — simple terminal editor
+
+emacs — powerful, extensible editor
+
+Examples — practical one-liners
+Find largest files in /home:
+find /home -type f -exec du -h {} + | sort -hr | head -n 20
+
+Count total lines of code (all .c files):
+find . -name '*.c' -print0 | xargs -0 wc -l
+
+Recursively replace text in files (use carefully):
+grep -RIl "old" . | xargs sed -i 's/old/new/g'
+
+Sync two directories (safe copy):
+rsync -av --progress src/ dest/
+
+Download and extract tar.gz in one step:
+curl -sSL URL | tar -xz -C /target
+
+Troubleshooting & learning
+man <cmd> — manual page
+
+<cmd> --help — quick help
+
+command -v <cmd> — location of executable
+
+which <cmd> — similar to command -v
+
+If you want, I can:
+
+make a printable PDF of this sheet, or
+
+generate a cheat-sheet with only the commands you care about (e.g., file ops + text processing), or
+
+give a short interactive tutorial with exercises and example commands you run.
+
+Which would you like next?
+
+You said:
+add more
+ChatGPT said:
+Perfect 👍 — let’s extend the UNIX Command Reference with more advanced, lesser-known but still very useful commands, organized by topics — system, networking, package management, performance, scripting, etc.
+These are commands you’ll often use when doing administration, scripting, or development.
+
+🧩 1. File Management (Advanced)
+file
+Detects file type by inspecting content.
+
+file script.sh
+Output: Bourne-Again shell script, ASCII text executable
+
+stat
+Displays detailed file information (permissions, inode, timestamps).
+
+stat report.txt
+basename / dirname
+Extract filename or directory part from a path.
+
+basename /home/user/data/file.txt   # → file.txt
+dirname /home/user/data/file.txt    # → /home/user/data
+xargs
+Builds and executes command lines from stdin input.
+
+find . -name "*.log" | xargs rm
+(Deletes all .log files found under current dir.)
+
+rsync
+Synchronize directories (faster than cp).
+
+rsync -av --progress src/ dest/
+rsync -avz user@remote:/path /backup/
+diff / sdiff
+Compare two files line by line.
+
+diff old.txt new.txt
+sdiff -s old.txt new.txt    # side-by-side comparison
+cmp
+Compare binary files (for exact byte difference).
+
+cmp file1.bin file2.bin
+tee
+Redirect output to both screen and file.
+
+ls -l | tee output.txt
+🧮 2. Disk & Storage Utilities
+du
+Disk usage per directory or file.
+
+du -sh *        # show total size of each item in current dir
+du -ah | sort -rh | head   # largest files
+df
+Displays free/used disk space on mounted filesystems.
+
+df -h
+lsblk
+Lists all block devices (disks, partitions, etc.).
+
+lsblk
+blkid
+Show block device UUIDs (used in /etc/fstab).
+
+blkid
+mount / umount
+Mount or unmount filesystems.
+
+mount /dev/sdb1 /mnt/usb
+umount /mnt/usb
+🧠 3. Process & System Monitoring
+top
+Real-time process info.
+Keys inside top:
+
+P sort by CPU, M by memory, k kill, q quit.
+
+htop (improved top, if installed)
+htop
+pidof
+Find PID of a running process.
+
+pidof sshd
+lsof
+Lists open files and which process uses them.
+
+lsof -i :8080   # show process using port 8080
+free
+Show system memory usage.
+
+free -h
+vmstat
+Shows CPU, memory, I/O, system processes.
+
+vmstat 2 5      # updates every 2 seconds, 5 times
+uptime
+Shows how long the system has been running and load averages.
+
+uptime
+dmesg
+Displays kernel messages (hardware, boot logs).
+
+dmesg | less
+journalctl
+Shows system logs (for systemd-based systems).
+
+journalctl -xe
+journalctl -u ssh.service
+🌐 4. Networking Tools
+hostname
+Shows or sets the system hostname.
+
+hostname
+hostnamectl set-hostname myserver
+ip (modern replacement for ifconfig)
+Show interfaces and routing.
+
+ip addr show
+ip route show
+ip link set eth0 down
+netstat / ss
+Show network connections, sockets, listening ports.
+
+ss -tuln
+netstat -anp
+traceroute
+Show route packets take to a network host.
+
+traceroute google.com
+nslookup / dig
+DNS lookup tools.
+
+nslookup openai.com
+dig openai.com +short
+nc (netcat)
+Versatile tool for testing ports, transferring data, etc.
+
+nc -zv google.com 80       # port scan
+nc -l 1234 > recv.txt      # listen and save
+scp / sftp
+Secure copy over SSH.
+
+scp file.txt user@host:/tmp/
+sftp user@host
+⚙️ 5. System Administration
+sudo
+Run command as superuser.
+
+sudo apt update
+useradd, usermod, userdel
+Manage users.
+
+sudo useradd -m kathir
+sudo passwd kathir
+groupadd, groupdel, groups
+Manage groups.
+
+sudo groupadd developers
+groups kathir
+service / systemctl
+Manage system services.
+
+systemctl start nginx
+systemctl status ssh
+systemctl enable mysql
+shutdown, reboot, poweroff
+sudo shutdown -h now
+sudo reboot
+🧰 6. Compression & Archiving (More formats)
+Format	Compress	Extract
+.tar.gz	tar -czvf file.tar.gz dir/	tar -xzvf file.tar.gz
+.tar.bz2	tar -cjvf file.tar.bz2 dir/	tar -xjvf file.tar.bz2
+.zip	zip -r file.zip dir/	unzip file.zip
+.7z	7z a file.7z dir/	7z x file.7z
+💻 7. Shell & Scripting Utilities
+history
+Shows previously used commands.
+
+history | grep ssh
+alias
+Create shortcut for commands.
+
+alias ll='ls -lah'
+date
+Display or set date/time.
+
+date
+date +"%Y-%m-%d %H:%M:%S"
+cal
+Display calendar.
+
+cal 11 2025
+bc
+Command-line calculator.
+
+echo "5*5+2" | bc
+sleep
+Pause for given seconds.
+
+sleep 5
+seq
+Generate sequence of numbers.
+
+seq 1 10
+expr
+Evaluate expressions (arithmetic or string).
+
+expr 5 + 3
+expr substr "Kathir" 1 3
+🔍 8. System Information & Hardware
+lscpu
+CPU architecture info.
+
+lscpu
+lsusb
+Lists USB devices.
+
+lsusb
+lspci
+Lists PCI hardware devices.
+
+lspci
+uname
+Kernel and OS info.
+
+uname -a
+uptime
+How long system is running.
+
+uptime
+dmidecode
+Show BIOS and hardware info (root required).
+
+sudo dmidecode -t system
+🧾 9. Package Management (examples)
+Debian/Ubuntu:
+sudo apt update
+sudo apt install nginx
+sudo apt remove apache2
+sudo apt list --installed
+Red Hat/CentOS:
+sudo yum install httpd
+sudo yum remove mysql
+Arch:
+sudo pacman -Syu
+macOS (Homebrew):
+brew install node
+brew list
+🧠 10. Miscellaneous Handy Commands
+clear — clears terminal
+history — view previously run commands
+uptime — shows load average
+man — view manual pages
+tput — change terminal colors/cursor
+yes — repeatedly output a string (yes Y | apt install pkg)
+watch — run command repeatedly and show output live
+watch -n 5 df -h
+crontab — schedule recurring tasks
+crontab -e
+Would you like me to:
+
+✅ Combine all of these into a PDF UNIX Command Booklet (grouped + examples + cheatsheet format), or
+
+📄 Make a table version (command | description | example) for quick study use?
+
+You can pick which format you’d prefer next.
+
+
+
+No file chosenNo file chosen
+ChatGPT can make mistakes. Check important info. See .

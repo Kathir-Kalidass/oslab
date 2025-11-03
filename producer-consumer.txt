@@ -1,0 +1,150 @@
+1. Using Semaphores (Classical Solution)
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+
+#define N 5        // buffer size
+int buffer[N], in = 0, out = 0;
+sem_t empty, full, mutex;
+
+void *producer(void *arg) {
+    int item = 1;
+    while (1) {
+        sem_wait(&empty);
+        sem_wait(&mutex);
+        buffer[in] = item;
+        printf("Produced %d\n", item);
+        in = (in + 1) % N;
+        sem_post(&mutex);
+        sem_post(&full);
+        item++;
+    }
+}
+
+void *consumer(void *arg) {
+    int item;
+    while (1) {
+        sem_wait(&full);
+        sem_wait(&mutex);
+        item = buffer[out];
+        printf("Consumed %d\n", item);
+        out = (out + 1) % N;
+        sem_post(&mutex);
+        sem_post(&empty);
+    }
+}
+
+int main() {
+    pthread_t p, c;
+    sem_init(&empty, 0, N);
+    sem_init(&full, 0, 0);
+    sem_init(&mutex, 0, 1);
+
+    pthread_create(&p, NULL, producer, NULL);
+    pthread_create(&c, NULL, consumer, NULL);
+    pthread_join(p, NULL);
+    pthread_join(c, NULL);
+}
+
+
+🔑 Key idea:
+
+empty counts empty slots,
+
+full counts filled slots,
+
+mutex ensures mutual exclusion.
+
+2. Using Monitors (Condition Variables in C with pthreads)
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+#define N 5
+int buffer[N], in = 0, out = 0, count = 0;
+pthread_mutex_t lock;
+pthread_cond_t not_full, not_empty;
+
+void *producer(void *arg) {
+    int item = 1;
+    while (1) {
+        pthread_mutex_lock(&lock);
+        while (count == N) pthread_cond_wait(&not_full, &lock);
+        buffer[in] = item;
+        printf("Produced %d\n", item);
+        in = (in + 1) % N; count++;
+        pthread_cond_signal(&not_empty);
+        pthread_mutex_unlock(&lock);
+        item++;
+    }
+}
+
+void *consumer(void *arg) {
+    int item;
+    while (1) {
+        pthread_mutex_lock(&lock);
+        while (count == 0) pthread_cond_wait(&not_empty, &lock);
+        item = buffer[out];
+        printf("Consumed %d\n", item);
+        out = (out + 1) % N; count--;
+        pthread_cond_signal(&not_full);
+        pthread_mutex_unlock(&lock);
+    }
+}
+
+int main() {
+    pthread_t p, c;
+    pthread_mutex_init(&lock, NULL);
+    pthread_cond_init(&not_full, NULL);
+    pthread_cond_init(&not_empty, NULL);
+
+    pthread_create(&p, NULL, producer, NULL);
+    pthread_create(&c, NULL, consumer, NULL);
+    pthread_join(p, NULL);
+    pthread_join(c, NULL);
+}
+
+
+🔑 Key idea:
+
+Condition variables replace semaphores.
+
+wait suspends thread, signal wakes it up.
+
+3. Using Message Passing (No Shared Buffer)
+
+Here, producer/consumer communicate directly via messages (pipes).
+
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    int fd[2]; pipe(fd);
+    if (fork() == 0) {   // child -> consumer
+        close(fd[1]);
+        int item;
+        while (read(fd[0], &item, sizeof(item)))
+            printf("Consumed %d\n", item);
+    } else {             // parent -> producer
+        close(fd[0]);
+        for (int i = 1; i <= 10; i++) {
+            write(fd[1], &i, sizeof(i));
+            printf("Produced %d\n", i);
+        }
+    }
+}
+
+
+🔑 Key idea:
+
+No shared memory.
+
+OS pipe is the buffer.
+
+✅ So, you now have:
+
+Semaphores → classical OS solution
+
+Monitors → condition variables
+
+Message Passing → pipes (IPC

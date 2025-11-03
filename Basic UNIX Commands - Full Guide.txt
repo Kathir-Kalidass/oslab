@@ -1,0 +1,950 @@
+UNIX Basic Commands — Usage, Examples, and Sample Output
+================================================================
+Notes
+- Prompt shown as `$`. Do not type it.
+- Outputs vary by system; shown here as typical examples.
+- Paths use POSIX style (/home/user). Adjust for your environment.
+
+Legend
+- Usage: Canonical way to call the command.
+- Example: A concrete invocation.
+- Output: Representative output for the example.
+- Tips: Handy flags, pitfalls, and related notes.
+
+----------------------------------------------------------------
+1) pwd — Print Working Directory
+----------------------------------------------------------------
+Description: Shows the absolute path of your current directory.
+Usage: pwd
+Example:
+  $ pwd
+Output:
+  /home/alex/projects
+
+----------------------------------------------------------------
+2) whoami — Current User
+----------------------------------------------------------------
+Description: Prints your effective username.
+Usage: whoami
+Example:
+  $ whoami
+Output:
+  alex
+
+----------------------------------------------------------------
+3) uname — System Information
+----------------------------------------------------------------
+Description: Prints kernel/OS info.
+Usage: uname [-a]
+Examples:
+  $ uname
+  Linux
+  $ uname -a
+Output (example):
+  Linux host 5.15.0-91-generic #101~20.04.1-Ubuntu SMP x86_64 GNU/Linux
+
+----------------------------------------------------------------
+4) date — Current Date/Time
+----------------------------------------------------------------
+Usage: date
+Example:
+  $ date
+Output (example):
+  Sat Nov  2 10:23:54 UTC 2025
+
+----------------------------------------------------------------
+5) cal — Calendar
+----------------------------------------------------------------
+Usage: cal [month] [year]
+Examples:
+  $ cal
+  $ cal 11 2025
+Output (snippet):
+     November 2025
+  Su Mo Tu We Th Fr Sa
+                     1
+   2  3  4  5  6  7  8
+   9 10 11 12 13 14 15
+  16 17 18 19 20 21 22
+  23 24 25 26 27 28 29
+  30
+
+----------------------------------------------------------------
+6) echo — Print Arguments
+----------------------------------------------------------------
+Usage: echo [options] [string ...]
+Examples:
+  $ echo "Hello, world"
+  Hello, world
+  $ echo $HOME
+Output (example):
+  /home/alex
+Tips: Use -n to omit trailing newline.
+
+----------------------------------------------------------------
+7) printf — Formatted Output
+----------------------------------------------------------------
+Usage: printf FORMAT [ARG...]
+Example:
+  $ printf "%-10s %5d\n" "apples" 7
+Output:
+  apples          7
+
+----------------------------------------------------------------
+8) ls — List Files
+----------------------------------------------------------------
+Usage: ls [-lah] [path]
+Examples:
+  $ ls
+  file.txt  src  README.md
+  $ ls -lah
+Output (snippet):
+  drwxr-xr-x  5 alex staff 4.0K Nov  2 10:20 .
+  drwxr-xr-x 18 alex staff 4.0K Nov  1 08:00 ..
+  -rw-r--r--  1 alex staff  612 Nov  2 10:19 README.md
+Tips:
+- -l: long format; -a: include dotfiles; -h: human sizes; -t: sort by time.
+
+----------------------------------------------------------------
+9) tree — Directory Tree (if installed)
+----------------------------------------------------------------
+Usage: tree [path]
+Example:
+  $ tree src
+Output (example):
+  src
+  ├── app
+  │   └── main.c
+  └── lib
+      └── util.c
+
+----------------------------------------------------------------
+10) cd — Change Directory
+----------------------------------------------------------------
+Usage: cd [path]
+Examples:
+  $ cd /etc
+  $ cd ..       # up one level
+  $ cd ~        # home
+  $ cd -        # previous dir
+
+----------------------------------------------------------------
+11) mkdir — Make Directory
+----------------------------------------------------------------
+Usage: mkdir [-p] dir...
+Examples:
+  $ mkdir logs
+  $ mkdir -p tmp/a/b/c
+
+----------------------------------------------------------------
+12) rmdir — Remove Empty Directory
+----------------------------------------------------------------
+Usage: rmdir dir...
+Example:
+  $ rmdir tmp/a/b/c
+Error if non-empty.
+
+----------------------------------------------------------------
+13) touch — Create or Update File Timestamp
+----------------------------------------------------------------
+Usage: touch file...
+Example:
+  $ touch notes.txt
+
+----------------------------------------------------------------
+14) cat — Concatenate and Print Files
+----------------------------------------------------------------
+Usage: cat [file...]
+Examples:
+  $ cat notes.txt
+Output (example):
+  Meeting at 10.
+Tips: Use -n for line numbers.
+
+----------------------------------------------------------------
+15) less — Pager for Viewing Files
+----------------------------------------------------------------
+Usage: less file
+Example:
+  $ less /var/log/syslog
+Keys: q quit, / search, n next.
+
+----------------------------------------------------------------
+16) head — First Lines
+----------------------------------------------------------------
+Usage: head [-n N] file
+Example:
+  $ head -n 3 poem.txt
+Output:
+  Line 1
+  Line 2
+  Line 3
+
+----------------------------------------------------------------
+17) tail — Last Lines / Follow
+----------------------------------------------------------------
+Usage: tail [-n N] file | tail -f file
+Examples:
+  $ tail -n 2 app.log
+Output:
+  ... last line 1 ...
+  ... last line 2 ...
+  $ tail -f app.log   # stream new lines as they arrive
+
+----------------------------------------------------------------
+18) wc — Count Lines/Words/Bytes
+----------------------------------------------------------------
+Usage: wc [-lwc] [file]
+Examples:
+  $ wc -l README.md
+Output:
+       42 README.md
+  $ echo "hello world" | wc -w
+  2
+
+----------------------------------------------------------------
+19) sort — Sort Lines
+----------------------------------------------------------------
+Usage: sort [-nru] [-k KEY] [file]
+Examples:
+  $ sort names.txt
+  $ sort -n numbers.txt
+  $ sort -rk2 data.tsv   # reverse, key 2
+
+----------------------------------------------------------------
+20) uniq — Unique Adjacent Lines
+----------------------------------------------------------------
+Usage: uniq [-cdu]
+Examples:
+  $ sort items.txt | uniq -c
+Output (example):
+      1 apple
+      3 banana
+      2 cherry
+
+----------------------------------------------------------------
+21) cut — Extract Columns
+----------------------------------------------------------------
+Usage: cut -d DELIM -f LIST file
+Examples:
+  $ cut -d, -f1,3 users.csv
+Output (example):
+  alice,admin
+  bob,viewer
+
+----------------------------------------------------------------
+22) paste — Merge Lines
+----------------------------------------------------------------
+Usage: paste [-d DELIM] file1 file2
+Example:
+  $ paste -d, first.txt last.txt
+Output:
+  Alice,Smith
+  Bob,Jones
+
+----------------------------------------------------------------
+23) tr — Translate/Delete Characters
+----------------------------------------------------------------
+Usage: tr SET1 SET2 | tr -d SET
+Examples:
+  $ echo "hello" | tr a-z A-Z
+  HELLO
+  $ echo "a,b,c" | tr -d ,
+  abc
+
+----------------------------------------------------------------
+24) tee — Copy stdin to file and stdout
+----------------------------------------------------------------
+Usage: cmd | tee file
+Example:
+  $ echo "build" | tee todo.txt
+Output to screen:
+  build
+File todo.txt now contains:
+  build
+
+----------------------------------------------------------------
+25) grep — Search Text
+----------------------------------------------------------------
+Usage: grep [options] PATTERN [file...]
+Common flags: -i (ignore case), -n (line numbers), -R (recursive), -E (extended regex)
+Examples:
+  $ grep -n "error" app.log
+Output (example):
+  17:ERROR: failed to connect
+  $ grep -Ri "timeout" logs/
+  logs/2025-11-02.log:timeout reached after 30s
+  $ echo "abc123" | grep -E "[a-z]+[0-9]+"
+  abc123
+
+----------------------------------------------------------------
+26) sed — Stream Editor (basics)
+----------------------------------------------------------------
+Usage: sed 'SCRIPT' file
+Examples:
+  $ sed -n '1,3p' poem.txt     # print lines 1..3
+  $ sed 's/cat/dog/g' pets.txt  # replace cat->dog
+Output (replace example):
+  My dog is nice
+Tips: Use -i for in-place (backup with -i.bak).
+
+----------------------------------------------------------------
+27) awk — Pattern Scanning and Processing (basics)
+----------------------------------------------------------------
+Usage: awk 'PROGRAM' file
+Examples:
+  $ awk -F, '{print $1}' users.csv   # first column
+Output:
+  alice
+  bob
+  $ awk '{sum+=$1} END {print sum}' numbers.txt
+Output (example):
+  1337
+
+----------------------------------------------------------------
+28) find — Find Files
+----------------------------------------------------------------
+Usage: find PATH [tests] [actions]
+Examples:
+  $ find . -name "*.c"
+  ./src/app/main.c
+  ./src/lib/util.c
+  $ find /var/log -type f -size +10M
+  $ find . -name "*.tmp" -delete
+  $ find . -type f -name "*.log" -exec gzip {} +
+
+----------------------------------------------------------------
+29) xargs — Build and Execute from stdin
+----------------------------------------------------------------
+Usage: xargs [command]
+Example:
+  $ printf "a b c" | xargs -n1 echo ITEM:
+Output:
+  ITEM: a
+  ITEM: b
+  ITEM: c
+
+----------------------------------------------------------------
+30) file — File Type Identification
+----------------------------------------------------------------
+Usage: file file...
+Example:
+  $ file /bin/ls
+Output (example):
+  /bin/ls: ELF 64-bit LSB executable, x86-64, dynamically linked, ...
+
+----------------------------------------------------------------
+31) diff — Line-by-Line Differences
+----------------------------------------------------------------
+Usage: diff [-u] file1 file2
+Example:
+  $ diff -u a.txt b.txt
+Output (snippet):
+  --- a.txt
+  +++ b.txt
+  @@
+  -old line
+  +new line
+
+----------------------------------------------------------------
+32) cmp — Byte-by-Byte Compare
+----------------------------------------------------------------
+Usage: cmp [-l] file1 file2
+Example:
+  $ cmp a.bin b.bin || echo "different"
+Output:
+  different
+
+----------------------------------------------------------------
+33) ln — Links (Hard/Symbolic)
+----------------------------------------------------------------
+Usage: ln target linkname | ln -s target linkname
+Examples:
+  $ ln -s /opt/tool/bin/tool ~/bin/tool
+  $ ln original.txt hardlink.txt
+
+----------------------------------------------------------------
+34) chmod — Change Permissions
+----------------------------------------------------------------
+Usage: chmod MODE file...
+Examples:
+  $ chmod u+x script.sh      # add execute for user
+  $ chmod 644 file.txt       # rw-r--r--
+Output (ls -l after):
+  -rw-r--r-- 1 alex staff ... file.txt
+Tips: Numeric (e.g., 755) or symbolic (u+rw,g-x).
+
+----------------------------------------------------------------
+35) chown — Change Owner/Group
+----------------------------------------------------------------
+Usage: chown OWNER[:GROUP] file...
+Examples:
+  $ sudo chown root:root /var/www/index.html
+
+----------------------------------------------------------------
+36) cp — Copy Files/Directories
+----------------------------------------------------------------
+Usage: cp [-irv] source dest | cp -r dir targetDir
+Examples:
+  $ cp file.txt backup.txt
+  $ cp -r src/ build/
+Tips: -i interactive, -r recursive, -a archive preserves metadata.
+
+----------------------------------------------------------------
+37) mv — Move/Rename
+----------------------------------------------------------------
+Usage: mv [-i] source dest
+Examples:
+  $ mv draft.txt final.txt
+  $ mv *.log logs/
+
+----------------------------------------------------------------
+38) rm — Remove Files/Directories
+----------------------------------------------------------------
+Usage: rm [-irf] file... | rm -r dir
+Examples:
+  $ rm old.tmp
+  $ rm -rf build/
+Warning: -f and -r are destructive; use with care.
+
+----------------------------------------------------------------
+39) tar — Archive (and Compress with gzip)
+----------------------------------------------------------------
+Usage:
+  Create: tar -czf archive.tgz dir/
+  Extract: tar -xzf archive.tgz
+Examples:
+  $ tar -czf logs_2025-11-02.tgz logs/
+  $ tar -xzf logs_2025-11-02.tgz
+Output (create):
+  adds files to archive; quiet by default
+
+----------------------------------------------------------------
+40) gzip / gunzip — Compress/Decompress
+----------------------------------------------------------------
+Usage: gzip file | gunzip file.gz
+Examples:
+  $ gzip report.txt    # creates report.txt.gz and removes original
+  $ gunzip report.txt.gz
+
+----------------------------------------------------------------
+41) zip / unzip — Zip Archives
+----------------------------------------------------------------
+Usage: zip archive.zip files... | unzip archive.zip
+Examples:
+  $ zip -r src.zip src/
+  $ unzip src.zip
+
+----------------------------------------------------------------
+42) df — Disk Free
+----------------------------------------------------------------
+Usage: df -h
+Example:
+  $ df -h
+Output (snippet):
+  Filesystem      Size  Used Avail Use% Mounted on
+  /dev/sda1        98G   35G   59G  38% /
+
+----------------------------------------------------------------
+43) du — Disk Usage
+----------------------------------------------------------------
+Usage: du -sh [path]
+Examples:
+  $ du -sh .
+  420M	.
+  $ du -sh logs/
+  12M	logs/
+
+----------------------------------------------------------------
+44) ps — Process Status
+----------------------------------------------------------------
+Usage: ps aux | ps -ef
+Example:
+  $ ps aux | grep nginx
+Output (snippet):
+  root     1024  0.0  ... nginx: master process
+  www-data 1050  0.0  ... nginx: worker process
+
+----------------------------------------------------------------
+45) top — Interactive Process Viewer
+----------------------------------------------------------------
+Usage: top
+Example:
+  $ top
+Output: Live updating process list (press q to quit).
+
+----------------------------------------------------------------
+46) kill / killall / pkill — Terminate Processes
+----------------------------------------------------------------
+Usage: kill [-SIGNAL] PID | killall name | pkill pattern
+Examples:
+  $ kill 1050
+  $ kill -9 1050
+  $ pkill -f "python server.py"
+
+----------------------------------------------------------------
+47) jobs / fg / bg — Shell Job Control
+----------------------------------------------------------------
+Usage: jobs | fg %N | bg %N
+Example:
+  $ long_task &
+  [1] 2345
+  $ jobs
+  [1]+  Running  long_task &
+  $ fg %1   # bring to foreground
+
+----------------------------------------------------------------
+48) history — Command History
+----------------------------------------------------------------
+Usage: history [N]
+Examples:
+  $ history | tail -n 3
+Output (example):
+  997  ls
+  998  make
+  999  ./run.sh
+Tips: !997 to re-run, ctrl-r to search history (in bash/readline shells).
+
+----------------------------------------------------------------
+49) alias — Create Shortcuts
+----------------------------------------------------------------
+Usage: alias name='command'
+Examples:
+  $ alias ll='ls -alF'
+  $ alias gs='git status'
+  $ unalias ll
+
+----------------------------------------------------------------
+50) which / whereis / type — Locate Commands
+----------------------------------------------------------------
+Usage: which cmd | whereis cmd | type cmd
+Examples:
+  $ which python
+  /usr/bin/python
+  $ whereis ls
+  ls: /bin/ls /usr/share/man/man1/ls.1.gz
+  $ type cd
+  cd is a shell builtin
+
+----------------------------------------------------------------
+51) man — Manual Pages
+----------------------------------------------------------------
+Usage: man command
+Example:
+  $ man grep
+Output: Opens the manual in a pager. Use q to quit.
+Tips: man -k keyword (search), also try `info` for GNU docs.
+
+----------------------------------------------------------------
+52) env / printenv — Show Environment
+----------------------------------------------------------------
+Usage: env | printenv [VAR]
+Examples:
+  $ printenv HOME
+  /home/alex
+  $ env | grep PATH
+
+----------------------------------------------------------------
+53) export — Set Environment Variable (shell builtin)
+----------------------------------------------------------------
+Usage: export VAR=value
+Example (bash):
+  $ export APP_ENV=prod
+  $ echo $APP_ENV
+  prod
+
+----------------------------------------------------------------
+54) sudo — Run as Another User (default: root)
+----------------------------------------------------------------
+Usage: sudo command [args]
+Examples:
+  $ sudo systemctl restart nginx
+  $ sudo -u postgres psql
+
+----------------------------------------------------------------
+55) ssh — Secure Shell
+----------------------------------------------------------------
+Usage: ssh [user@]host [command]
+Examples:
+  $ ssh user@server.example.com
+  $ ssh -i ~/.ssh/id_rsa user@host 'uptime'
+Output (uptime example):
+  10:30:12 up 5 days,  2:11,  3 users,  load average: 0.12, 0.08, 0.05
+
+----------------------------------------------------------------
+56) scp — Secure Copy
+----------------------------------------------------------------
+Usage: scp source target
+Examples:
+  $ scp file.txt user@host:/tmp/
+  $ scp -r src/ user@host:~/src/
+
+----------------------------------------------------------------
+57) sftp — SSH File Transfer
+----------------------------------------------------------------
+Usage: sftp [user@]host
+Example:
+  $ sftp user@host
+  sftp> put file.txt
+  sftp> get remote.txt
+
+----------------------------------------------------------------
+58) curl — Transfer Data (HTTP/FTP/etc.)
+----------------------------------------------------------------
+Usage: curl [options] URL
+Examples:
+  $ curl https://example.com
+  $ curl -I https://example.com
+Output (-I headers example):
+  HTTP/2 200
+  content-type: text/html; charset=UTF-8
+  ...
+
+----------------------------------------------------------------
+59) wget — Non-interactive Downloader
+----------------------------------------------------------------
+Usage: wget URL
+Example:
+  $ wget https://example.com/file.tar.gz
+Output (snippet):
+  Saving to: ‘file.tar.gz’
+
+----------------------------------------------------------------
+60) ping — Network Reachability
+----------------------------------------------------------------
+Usage: ping [-c N] host
+Example:
+  $ ping -c 2 example.com
+Output (example):
+  2 packets transmitted, 2 received, 0% packet loss
+
+----------------------------------------------------------------
+61) traceroute — Route to Host (may require sudo)
+----------------------------------------------------------------
+Usage: traceroute host
+Example:
+  $ traceroute example.com
+Output: hops along the route.
+
+----------------------------------------------------------------
+62) ip / ifconfig — Network Interfaces
+----------------------------------------------------------------
+Usage: ip addr | ifconfig
+Examples:
+  $ ip addr show
+  $ ifconfig eth0
+
+----------------------------------------------------------------
+63) df, du, free — Disk/Memory Quick Checks
+----------------------------------------------------------------
+Examples:
+  $ df -h        # disk usage by filesystem
+  $ du -sh *     # size of items in current dir
+  $ free -h      # memory usage
+
+----------------------------------------------------------------
+64) tee + grep + tail — Practical Pipeline Example
+----------------------------------------------------------------
+Goal: Watch a log for errors and also save them.
+Example:
+  $ tail -f app.log | grep --line-buffered -i error | tee errors.log
+Output (screen and saved):
+  [2025-11-02 10:31:00] ERROR: failed to connect
+
+----------------------------------------------------------------
+Cheat-sheet: Common Flags
+----------------------------------------------------------------
+- ls: -l (long), -a (all), -h (human), -t (time)
+- grep: -i (ignore case), -R (recursive), -n (line no), -E (ERE)
+- find: -name, -type f|d, -size +N, -mtime, -exec ... {}
+- tar: -c (create), -x (extract), -z (gzip), -f (file), -v (verbose)
+- chmod numeric: 7=rwx, 6=rw-, 5=r-x, 4=r--, 3=-wx, 2=-w-, 1=--x
+
+----------------------------------------------------------------
+Notes and Good Practices
+----------------------------------------------------------------
+- Use `man` and `--help` to explore options in your distro.
+- Prefer quotes around arguments with spaces or wildcards.
+- Test destructive commands with `-i` or on sample files first.
+- Combine small tools with pipes to solve complex tasks.
+- Outputs in this guide are examples; real outputs may differ.
+ - Outputs in this guide are examples; real outputs may differ.
+
+----------------------------------------------------------------
+Deep Dive: grep — variations, patterns, and workflows
+----------------------------------------------------------------
+What grep does: Filters lines that match a pattern (regex or fixed string) from files or stdin.
+
+Core forms
+- Basic regex (default): grep PATTERN file
+- Extended regex: grep -E ERE file      # like old egrep
+- Fixed string:  grep -F STRING file    # like old fgrep; no regex
+- Recursive:     grep -R PATTERN dir    # search directories
+
+Popular options (GNU/BSD compatible where noted)
+-i  ignore case
+-n  show line numbers
+-H  show filename (useful when piping stdin or single file)
+-h  hide filename (when multiple files)
+-r/-R  recursive (R follows symlinks in GNU grep; BSD uses -R)
+--include/--exclude/--exclude-dir  filter files/dirs in recursive mode
+-v  invert match (non-matching lines)
+-w  match whole words only
+-x  match whole line
+-c  count matches per file
+-l/-L  list files with/without matches
+-o  print only the matching part (token extract)
+-A N / -B N / -C N  show context After/Before/both
+--color=auto  highlight matches
+-s  suppress errors; -q quiet (exit code only)
+-a  treat binary files as text; -I ignore binary files
+-P  PCRE (Perl regex, GNU grep only)
+
+Regex quick refs
+- ^ and $  anchors for start/end of line
+- . any char; \s whitespace (PCRE), [[:space:]] POSIX class
+- * + ? quantifiers; {m,n} counts
+- () groups; | alternation; [] character class; [^] negated class
+- POSIX classes: [[:alpha:]], [[:digit:]], [[:alnum:]], [[:space:]], [[:punct:]]
+
+Examples
+1) Find error lines with numbers and show line numbers
+  $ grep -nE "ERROR [0-9]+" app.log
+  17:ERROR 503 backend unavailable
+
+2) Case-insensitive search recursively restricted to .log files
+  $ grep -Ri --include='*.log' timeout logs/
+  logs/2025-11-02.log:timeout reached after 30s
+
+3) Show 2 lines of context around matches
+  $ grep -nC2 -E "(WARN|ERROR)" app.log
+  14:... previous line ...
+  15:WARN cache slow
+  16:INFO recovered
+  17:ERROR failed to connect
+  18:... next line ...
+
+4) Extract only email-like tokens from a text (print just matches)
+  $ grep -oE "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}" contacts.txt
+  alice@example.com
+  bob.smith@corp.co
+
+5) Count the number of TODOs in the repo
+  $ grep -Rci --exclude-dir=.git '^\s*TODO' .
+  src:3
+  tests:1
+
+6) List files that contain a specific word
+  $ grep -Rl "License" .
+  ./README.md
+  ./LICENSE
+
+7) Word-boundary vs. substring
+  $ echo 'cat scatter concatenate' | grep -w cat
+  cat
+
+8) Whole-line match (useful for exact config lines)
+  $ grep -x "enabled=true" settings.conf
+  enabled=true
+
+9) Binary handling (treat as text)
+  $ grep -a "PNG" image.png | head -n1
+  ...PNG...
+
+10) PCRE lookaheads (GNU grep -P)
+  $ echo 'abc123' | grep -Po '(?<=abc)\d+'
+  123
+
+Exit codes
+- 0: match found; 1: no match; 2: error. Great for scripting with -q.
+
+Pitfalls and tips
+- Quote your regex to avoid shell expansion.
+- For speed in large trees, prefer --include/--exclude and -F for fixed strings.
+- ripgrep (rg) or The Silver Searcher (ag) are fast alternatives with similar syntax.
+
+----------------------------------------------------------------
+Deep Dive: sed — select, transform, and edit streams
+----------------------------------------------------------------
+What sed does: Reads input line by line, applies editing commands, writes result.
+Pattern space is the current line; hold space is a secondary scratch buffer.
+
+Common usage forms
+- sed 'SCRIPT' file          # read from file
+- sed -e 'CMD1' -e 'CMD2'    # multiple commands
+- sed -f script.sed file     # commands from file
+- sed -i[.bak] 'SCRIPT' file # in-place edit (GNU/BSD; backup optional)
+- sed -E 'SCRIPT'            # extended regex (GNU uses -E, older GNU also -r)
+
+Addressing (what lines to affect)
+- Number: 1, 5, $ (last)
+- Range: 3,7   or   3,$    or   /start/,/end/
+- Pattern: /regex/  matches lines with regex
+- Negation: address!command  (apply to lines not matching)
+
+Core commands
+- p   print pattern space (with -n to suppress default printing)
+- d   delete line (skip to next)
+- s/REGEX/REPL/[flags]  substitute; flags: g (global), i or I (ignore case),
+      number (only Nth), p (print if changed), w file (write changed lines)
+- n   read next line into pattern space (continue script)
+- q   quit early (optionally with code in GNU sed)
+- =   print current line number
+- a\ text   append after line
+- i\ text   insert before line
+- c\ text   change the addressed lines to text
+- y/src/dst/  transliterate characters (like tr)
+- r file  read file contents and append
+- w file  write pattern space to file
+- h/H  copy/append pattern -> hold;  g/G  copy/append hold -> pattern;  x swap
+- N   append next input line (creates multi-line pattern space)
+
+Typical patterns
+1) Print only a line range
+  $ sed -n '10,15p' file.txt
+  ...lines 10..15...
+
+2) Replace globally, in-place with backup
+  $ sed -i.bak 's/DEBUG/INFO/g' app.conf
+  # creates app.conf.bak before editing
+
+3) Case-insensitive substitution printing only changed lines
+  $ sed -n 's/error/ERROR/ip' app.log
+  ERROR connecting to db
+
+4) Delete blank lines and lines starting with # (comments)
+  $ sed '/^\s*#/d; /^\s*$/d' config.ini
+
+5) Add a header line before the first line
+  $ sed '1i\
+  Header: Report v1' report.txt
+
+6) Surround matches with brackets using backreferences
+  $ echo 'foo bar baz' | sed -E 's/(ba[rz])/[\1]/g'
+  foo [bar] [baz]
+
+7) Only change the 2nd occurrence per line
+  $ echo 'a b a b a' | sed 's/a/A/2'
+  a b A b a
+
+8) Join lines ending with backslash (line continuations)
+  $ sed -n ':a; /\\$/ { N; s/\\\n//; ba }; p' input.txt
+
+9) Number non-empty lines (like nl but quick)
+  $ sed -n '/\S/=' file | paste -d' ' - file
+  1 First line
+  3 Third line
+
+10) Multi-line replace across newline using N
+  $ printf 'key=\nvalue\n' | sed ':a;N;$!ba; s/key=\n/value=/'
+  value=
+
+Tips
+- Use single quotes to avoid shell escaping of backslashes.
+- Prefer -E for clearer regex when supported; older systems may use -r.
+- In-place (-i) behavior differs across BSD/GNU; providing a suffix works portably.
+- Test complex scripts with a sample file before running with -i.
+
+----------------------------------------------------------------
+Deep Dive: awk — pattern-action processing and reporting
+----------------------------------------------------------------
+What awk does: Splits input into records (lines) and fields, then runs pattern { action } blocks.
+Great for columnar data, quick reports, and small data transformations.
+
+Program structure
+- BEGIN { ... }   # runs once before reading input
+- PATTERN { ... } # runs for lines where PATTERN matches (true)
+- END { ... }     # runs once after input
+
+Key built-ins
+- Fields: $0 whole line; $1..$NF fields. NF=number of fields, NR=record number, FNR=record no. per file
+- Separators: FS (input field sep, default whitespace), OFS (output field sep), RS (record sep), ORS
+- Vars: ARGC, ARGV[], ENVIRON[], FILENAME, IGNORECASE (GNU)
+
+Running awk
+- awk 'PROGRAM' file              # inline script
+- awk -F, 'PROGRAM' file          # set FS via flag
+- awk -v var=val 'PROGRAM' file   # pass shell vars into awk
+- awk -f prog.awk file            # script file
+
+Print vs printf
+- print $1, $3     # prints with OFS between fields and ORS at end
+- printf "%10s %5d\n", $1, $2  # formatted, no automatic newline
+
+Patterns
+- Regex on a field: $3 ~ /admin/
+- Numeric comparisons: $2 > 100
+- Combined: $3 ~ /admin/ && $2 > 100
+
+String helpers
+- length(s), tolower(s), toupper(s), substr(s, i, n), index(s, t)
+- match(s, r), sub(r, repl, s), gsub(r, repl, s), split(s, a, FS)
+
+Examples
+1) Print first and third column of CSV
+  $ awk -F, '{print $1, $3}' users.csv
+  alice admin
+  bob   viewer
+
+2) Sum the first column and print total
+  $ awk '{sum += $1} END {print sum}' numbers.txt
+  1337
+
+3) Filter rows by regex and column numeric condition
+  $ awk -F, '$3 ~ /admin/ && $2 >= 5 {print $1,$2}' users.csv
+  alice 7
+
+4) Add a computed column and pretty print
+  $ awk -F, 'BEGIN{OFS=","} {ratio=$3/$2; printf "%s,%d,%d,%.2f\n", $1,$2,$3,ratio}' data.csv
+  itemA,10,25,2.50
+
+5) Group by a key and aggregate counts
+  $ awk -F, '{count[$3]++} END {for (k in count) printf "%s,%d\n", k, count[k]}' users.csv
+  admin,12
+  viewer,8
+
+6) Multiple input files; show per-file line count using FNR
+  $ awk 'FNR==1 {if (NR>1) print prev, lines; prev=FILENAME; lines=0} {lines++} END{print prev, lines}' *.txt
+  a.txt 42
+  b.txt 17
+
+7) Pass shell variable into awk and filter on it
+  $ limit=100; awk -v L=$limit '$2 > L {print $0}' data.txt
+
+8) Reformat whitespace-separated columns into CSV
+  $ awk 'BEGIN{OFS=","} {print $1,$2,$3}' table.txt
+
+9) Replace only in a specific column (3rd) using gsub
+  $ awk -F, 'BEGIN{OFS=","} {gsub(/foo/,"bar",$3); print}' data.csv
+
+10) Simple join-like enrichment using an associative array
+  # left file: prices.csv -> sku,price
+  # right file: items.csv  -> sku,name
+  $ awk -F, 'NR==FNR {price[$1]=$2; next} {print $1,$2,price[$1]}' prices.csv items.csv
+  A12 Widget 9.99
+
+CSV caveat
+- Basic FS="," works for simple CSV; quoted fields with commas need a real CSV parser.
+
+User-defined functions (portable awk/mawk/gawk)
+  function trim(s) { sub(/^\s+/, "", s); sub(/\s+$/, "", s); return s }
+  $ echo '  name  ' | awk '{print trim($0)}'
+  name
+
+I/O and redirection
+- print $0 > "out.txt"     # overwrite
+- print $0 >> "out.txt"    # append
+- while (("cmd" | getline line) > 0) {...}  # read from external command
+
+Performance hints
+- Set FS precisely (e.g., -F '\t' for TSV) to avoid regex costs on large files.
+- Avoid heavy per-line printf when possible; buffer with arrays and print in END.
+
+----------------------------------------------------------------
+Quick choose: When to use what
+----------------------------------------------------------------
+- grep: find lines that match a pattern fast. Use -R/-E/-F and context flags.
+- sed: simple, line-oriented edits and substitutions; quick in-place file tweaks.
+- awk: field-aware processing, aggregations, and formatted reports.
+
+End of document.

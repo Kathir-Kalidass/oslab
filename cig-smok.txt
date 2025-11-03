@@ -1,0 +1,144 @@
+1. Cigarette Smokers Problem
+
+Problem:
+
+An agent puts two random items on the table (out of {tobacco, paper, matches}).
+
+Three smokers each have one infinite supply of one item.
+
+Only the smoker who has the missing item can smoke.
+
+Must synchronize so only the correct smoker picks up items.
+
+Code (Semaphore Variant – C)
+// Cigarette Smokers Problem
+semaphore tobacco=0, paper=0, match=0;
+semaphore agent=1;
+
+void *agentThread() {
+    while(1) {
+        wait(agent);
+        int choice = rand()%3;
+        if(choice==0) { signal(tobacco); signal(paper); }
+        if(choice==1) { signal(paper); signal(match); }
+        if(choice==2) { signal(tobacco); signal(match); }
+    }
+}
+
+void *smokerWithMatch() {
+    while(1) {
+        wait(tobacco); wait(paper);
+        // Make cigarette
+        printf("Smoker with Match is smoking\n");
+        signal(agent);
+    }
+}
+
+
+📌 Variants:
+
+Using condition variables instead of semaphores.
+
+Using monitor-based solution.
+
+2. Barber Shop with Multiple Barbers
+
+Problem:
+
+Extension of Sleeping Barber.
+
+Multiple barbers, multiple chairs.
+
+Customers can be handled by whichever barber is free.
+
+Code (Pseudo-C with Semaphores)
+int waiting = 0;
+int chairs = N;
+semaphore mutex=1, customers=0, barbers=0;
+
+void *barber() {
+    while(1) {
+        wait(customers);
+        wait(mutex);
+        waiting--;
+        signal(barbers);
+        signal(mutex);
+        // Cut hair
+    }
+}
+
+void *customer() {
+    wait(mutex);
+    if(waiting < chairs) {
+        waiting++;
+        signal(customers);
+        signal(mutex);
+        wait(barbers); // wait for free barber
+        // Get haircut
+    } else {
+        signal(mutex);
+        // Leave
+    }
+}
+
+3. Dining Savages Problem
+
+Problem:
+
+N savages eat from a pot with M servings.
+
+A cook refills when pot is empty.
+
+Synchronization needed so savages eat only when food is available.
+
+Code (Semaphore Variant)
+int servings = 0;
+semaphore mutex=1, empty=0, full=0;
+
+void *savage() {
+    while(1) {
+        wait(mutex);
+        if(servings == 0) signal(empty); // wake cook
+        else {
+            servings--;
+            signal(mutex);
+            printf("Savage eating\n");
+        }
+    }
+}
+
+void *cook() {
+    while(1) {
+        wait(empty);
+        servings = M; // refill pot
+        signal(mutex);
+    }
+}
+
+4. Bounded Readers–Writers (Starvation-Free Variant)
+
+We already covered Reader–Writer, but variants include:
+
+First Readers–Writers (writers may starve).
+
+Second Readers–Writers (readers may starve).
+
+Fair (Starvation-Free) (priority alternates).
+
+5. Multiple Producers–Multiple Consumers (Bounded Buffer generalized)
+
+Already done single producer/single consumer.
+
+Extension: multiple producers and consumers working concurrently.
+
+✅ So the remaining major ones after Sleeping Barber are:
+
+Cigarette Smokers Problem
+
+Multiple Barbers Problem
+
+Dining Savages Problem
+
+Readers–Writers (Fair variant)
+
+Multiple Producers–Consumers

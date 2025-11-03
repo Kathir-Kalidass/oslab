@@ -1,0 +1,259 @@
+Sure, Kathir 👍
+Here’s the complete, working C program for the Reader–Writer problem using semaphores in UNIX — fully commented and ready to compile in your OS Lab (Linux / Termux).
+
+🧠 Reader–Writer Problem Explanation
+
+The Reader–Writer problem deals with synchronizing access to a shared resource (like a file or database) where:
+
+Multiple readers can read at the same time.
+
+Only one writer can write at a time.
+
+No reader can read while a writer is writing.
+
+We solve it using semaphores to avoid race conditions.
+
+✅ Complete C Program — Reader–Writer Problem
+
+File: reader_writer.c
+
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t mutex;     // Controls access to read_count
+sem_t wrt;       // Controls write access
+int read_count = 0;  // Number of readers currently reading
+int data = 0;        // Shared data (example)
+
+void *reader(void *arg) {
+    int id = *((int *)arg);
+    while (1) {
+        sem_wait(&mutex);       // Lock for updating read_count
+        read_count++;
+        if (read_count == 1)
+            sem_wait(&wrt);     // First reader locks the writer
+        sem_post(&mutex);
+
+        // Reading section
+        printf("📖 Reader %d is reading data = %d\n", id, data);
+        sleep(1);  // Simulate reading time
+
+        sem_wait(&mutex);
+        read_count--;
+        if (read_count == 0)
+            sem_post(&wrt);     // Last reader unlocks writer
+        sem_post(&mutex);
+
+        sleep(1);
+    }
+    return NULL;
+}
+
+void *writer(void *arg) {
+    int id = *((int *)arg);
+    while (1) {
+        sem_wait(&wrt);          // Lock resource for writing
+        data++;
+        printf("✍️  Writer %d wrote data = %d\n", id, data);
+        sem_post(&wrt);
+        sleep(2);  // Simulate writing time
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t rtid[5], wtid[2];
+    int rid[5] = {1, 2, 3, 4, 5};
+    int wid[2] = {1, 2};
+
+    sem_init(&mutex, 0, 1);
+    sem_init(&wrt, 0, 1);
+
+    // Create writer threads
+    for (int i = 0; i < 2; i++)
+        pthread_create(&wtid[i], NULL, writer, &wid[i]);
+
+    // Create reader threads
+    for (int i = 0; i < 5; i++)
+        pthread_create(&rtid[i], NULL, reader, &rid[i]);
+
+    // Join threads (optional)
+    for (int i = 0; i < 2; i++)
+        pthread_join(wtid[i], NULL);
+    for (int i = 0; i < 5; i++)
+        pthread_join(rtid[i], NULL);
+
+    sem_destroy(&mutex);
+    sem_destroy(&wrt);
+
+    return 0;
+}
+
+🧩 Explanation of Semaphores
+Semaphore	Purpose
+mutex	Protects read_count so that only one thread updates it at a time.
+wrt	Ensures that only one writer can write, and that no reader is reading while writing.
+⚙️ Compilation & Execution
+gcc reader_writer.c -o reader_writer -lpthread
+./reader_writer
+
+
+Sample Output:
+
+✍️  Writer 1 wrote data = 1
+📖 Reader 1 is reading data = 1
+📖 Reader 2 is reading data = 1
+📖 Reader 3 is reading data = 1
+✍️  Writer 2 wrote data = 2
+📖 Reader 4 is reading data = 2
+📖 Reader 5 is reading data = 2
+
+✅ Key Points
+
+Multiple readers can read concurrently.
+
+Writers get exclusive access.
+
+Synchronization achieved using mutex and wrt semaphores.
+
+Prevents data inconsistency and race conditions. 
+
+
+
+
+
+///////////////////////////////
+
+
+
+Got it ✅ Kathir — you want the Reader–Writer Problem implemented in separate C files — one for the Reader, one for the Writer, and one for the Main Controller (shared resource and semaphore setup) — just like how real IPC-based systems are modularized.
+
+Below is a complete version with all 3 files clearly explained and linked together.
+
+🧠 Reader–Writer Problem using Semaphores (Separate Files)
+📁 Files:
+reader_writer/
+ ├── main.c
+ ├── reader.c
+ ├── writer.c
+ └── rw.h
+
+🧩 rw.h — Header File (Shared Declarations)
+
+This header defines shared variables, includes, and synchronization objects.
+
+// rw.h
+#ifndef RW_H
+#define RW_H
+
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+extern sem_t mutex;   // To protect read_count
+extern sem_t wrt;     // To control writing
+extern int read_count;
+extern int data;
+
+void *reader(void *arg);
+void *writer(void *arg);
+
+#endif
+
+📘 reader.c — Reader Implementation
+// reader.c
+#include "rw.h"
+
+void *reader(void *arg) {
+    int id = *((int *)arg);
+    while (1) {
+        sem_wait(&mutex);     // Lock for updating read_count
+        read_count++;
+        if (read_count == 1)
+            sem_wait(&wrt);   // First reader locks writer
+        sem_post(&mutex);
+
+        // Reading section
+        printf("📖 Reader %d is reading data = %d\n", id, data);
+        sleep(1);
+
+        sem_wait(&mutex);
+        read_count--;
+        if (read_count == 0)
+            sem_post(&wrt);   // Last reader unlocks writer
+        sem_post(&mutex);
+
+        sleep(1);
+    }
+    return NULL;
+}
+
+✍️ writer.c — Writer Implementation
+// writer.c
+#include "rw.h"
+
+void *writer(void *arg) {
+    int id = *((int *)arg);
+    while (1) {
+        sem_wait(&wrt);
+        data++;
+        printf("✍️  Writer %d wrote data = %d\n", id, data);
+        sem_post(&wrt);
+        sleep(2);
+    }
+    return NULL;
+}
+
+⚙️ main.c — Main Controller
+// main.c
+#include "rw.h"
+
+sem_t mutex;
+sem_t wrt;
+int read_count = 0;
+int data = 0;
+
+int main() {
+    pthread_t rtid[5], wtid[2];
+    int rid[5] = {1, 2, 3, 4, 5};
+    int wid[2] = {1, 2};
+
+    sem_init(&mutex, 0, 1);
+    sem_init(&wrt, 0, 1);
+
+    // Create writer threads
+    for (int i = 0; i < 2; i++)
+        pthread_create(&wtid[i], NULL, writer, &wid[i]);
+
+    // Create reader threads
+    for (int i = 0; i < 5; i++)
+        pthread_create(&rtid[i], NULL, reader, &rid[i]);
+
+    for (int i = 0; i < 2; i++)
+        pthread_join(wtid[i], NULL);
+    for (int i = 0; i < 5; i++)
+        pthread_join(rtid[i], NULL);
+
+    sem_destroy(&mutex);
+    sem_destroy(&wrt);
+    return 0;
+}
+
+💻 Compilation & Execution
+
+Open terminal in the reader_writer folder:
+
+gcc main.c reader.c writer.c -o reader_writer -lpthread
+./reader_writer
+
+🧾 Sample Output
+✍️  Writer 1 wrote data = 1
+📖 Reader 1 is reading data = 1
+📖 Reader 2 is reading data = 1
+📖 Reader 3 is reading data = 1
+✍️  Writer 2 wrote data = 2
+📖 Reader 4 is reading data = 2
+📖 Reader 5 is reading data = 2

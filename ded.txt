@@ -1,0 +1,197 @@
+1. Wait-For Graph (Cycle Prevention)
+#include <stdio.h>
+#include <stdlib.h>
+
+#define N 5   // Number of processes
+
+int graph[N][N];  // Wait-For Graph adjacency matrix
+
+// Check if cycle exists using DFS
+int visited[N], recStack[N];
+
+int isCyclicUtil(int v) {
+    if (!visited[v]) {
+        visited[v] = 1;
+        recStack[v] = 1;
+        for (int i = 0; i < N; i++) {
+            if (graph[v][i]) {
+                if (!visited[i] && isCyclicUtil(i))
+                    return 1;
+                else if (recStack[i])
+                    return 1;
+            }
+        }
+    }
+    recStack[v] = 0;
+    return 0;
+}
+
+int isCyclic() {
+    for (int i = 0; i < N; i++) {
+        visited[i] = recStack[i] = 0;
+    }
+    for (int i = 0; i < N; i++) {
+        if (isCyclicUtil(i))
+            return 1;
+    }
+    return 0;
+}
+
+int main() {
+    int req, from, to;
+    while (1) {
+        printf("\nEnter request (format: P_from P_to), -1 -1 to exit: ");
+        scanf("%d %d", &from, &to);
+        if (from == -1) break;
+
+        graph[from][to] = 1; // Add edge
+
+        if (isCyclic()) {
+            printf("❌ Deadlock risk! Request denied (would cause cycle).\n");
+            graph[from][to] = 0; // Rollback
+        } else {
+            printf("✅ Request granted (no cycle).\n");
+        }
+    }
+    return 0;
+}
+
+2. Preemption-Based Prevention
+#include <stdio.h>
+#include <stdlib.h>
+
+int resource = 1; // Single resource
+int owner = -1;   // Process holding the resource
+
+int main() {
+    int pid;
+    while (1) {
+        printf("\nEnter process requesting resource (-1 to exit): ");
+        scanf("%d", &pid);
+        if (pid == -1) break;
+
+        if (resource == 1) {
+            resource = 0;
+            owner = pid;
+            printf("✅ Process %d granted resource.\n", pid);
+        } else {
+            printf("⚠ Resource busy. Preempting from process %d → given to %d.\n", owner, pid);
+            owner = pid; // Preempt and reassign
+        }
+    }
+    return 0;
+}
+
+3. Hold-and-Wait Elimination
+#include <stdio.h>
+#include <stdlib.h>
+
+#define RES 3 // Number of resources
+int available[RES] = {1, 1, 1}; // 1 = free, 0 = busy
+
+int main() {
+    int pid, req[RES];
+    while (1) {
+        printf("\nEnter process id (-1 to exit): ");
+        scanf("%d", &pid);
+        if (pid == -1) break;
+
+        printf("Enter request for all %d resources (0=don’t need,1=need): ", RES);
+        for (int i = 0; i < RES; i++) scanf("%d", &req[i]);
+
+        int canAllocate = 1;
+        for (int i = 0; i < RES; i++) {
+            if (req[i] && !available[i]) {
+                canAllocate = 0;
+                break;
+            }
+        }
+
+        if (canAllocate) {
+            for (int i = 0; i < RES; i++) if (req[i]) available[i] = 0;
+            printf("✅ All requested resources allocated to process %d.\n", pid);
+        } else {
+            printf("❌ Request denied. Process %d must wait (no partial allocation allowed).\n", pid);
+        }
+    }
+    return 0;
+}
+
+4. Resource Ordering (Circular Wait Prevention)
+#include <stdio.h>
+#include <stdlib.h>
+
+#define RES 3
+int available[RES] = {1, 1, 1};
+
+int main() {
+    int pid, r1, r2;
+    while (1) {
+        printf("\nEnter process id (-1 to exit): ");
+        scanf("%d", &pid);
+        if (pid == -1) break;
+
+        printf("Enter two resources to request in order (R1<R2): ");
+        scanf("%d %d", &r1, &r2);
+
+        if (r1 > r2) {
+            printf("❌ Invalid request. Must follow global order (lower before higher).\n");
+            continue;
+        }
+
+        if (available[r1] && available[r2]) {
+            available[r1] = available[r2] = 0;
+            printf("✅ Process %d allocated resources R%d and R%d.\n", pid, r1, r2);
+        } else {
+            printf("❌ Resources not available. Process must wait.\n");
+        }
+    }
+    return 0;
+}
+
+5. Timeout-Based Prevention
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
+
+#define TIMEOUT 5
+
+int resource = 1; 
+int owner = -1;   
+time_t waitStart = 0;
+
+int main() {
+    int pid;
+    while (1) {
+        printf("\nEnter process requesting resource (-1 to exit): ");
+        scanf("%d", &pid);
+        if (pid == -1) break;
+
+        if (resource == 1) {
+            resource = 0;
+            owner = pid;
+            waitStart = 0;
+            printf("✅ Process %d granted resource.\n", pid);
+        } else {
+            if (waitStart == 0) waitStart = time(NULL);
+            if (difftime(time(NULL), waitStart) > TIMEOUT) {
+                printf("⚠ Timeout reached. Aborting process %d. Resource reallocated to %d.\n", owner, pid);
+                owner = pid;
+                waitStart = 0;
+            } else {
+                printf("⏳ Process %d waiting...\n", pid);
+            }
+        }
+    }
+    return 0;
+}
+
+
+✅ These five codes together cover all major deadlock prevention strategies for single-instance resources.
+You can compile each using:
+
+gcc filename.c -o run && ./run
+
+
+Do you want me to also give you a combined program where you can choose the algorithm at runtime (menu-driven)?

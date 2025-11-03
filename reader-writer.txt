@@ -1,0 +1,113 @@
+1. First Readers–Writers Problem (Reader Priority)
+
+📌 Readers are given priority over writers (writers may starve).
+
+Multiple readers can read simultaneously.
+
+If a writer is waiting, but new readers come, readers still get access.
+
+C Code (using Semaphore Notation)
+// Reader Priority
+semaphore mutex = 1;   // Protects read_count
+semaphore rw_mutex = 1; // Controls access to resource
+int read_count = 0;
+
+Reader() {
+    wait(mutex);
+    read_count++;
+    if (read_count == 1) wait(rw_mutex); // First reader locks resource
+    signal(mutex);
+
+    // ---- Reading ----
+
+    wait(mutex);
+    read_count--;
+    if (read_count == 0) signal(rw_mutex); // Last reader releases resource
+    signal(mutex);
+}
+
+Writer() {
+    wait(rw_mutex);
+    // ---- Writing ----
+    signal(rw_mutex);
+}
+
+2. Second Readers–Writers Problem (Writer Priority)
+
+📌 Writers are given priority (readers may starve).
+
+Once a writer is waiting, no new readers are allowed.
+
+C Code
+// Writer Priority
+semaphore mutex = 1, rw_mutex = 1, readTry = 1;
+int read_count = 0;
+
+Reader() {
+    wait(readTry);      // Block if writer is waiting
+    wait(mutex);
+    read_count++;
+    if (read_count == 1) wait(rw_mutex);
+    signal(mutex);
+    signal(readTry);
+
+    // ---- Reading ----
+
+    wait(mutex);
+    read_count--;
+    if (read_count == 0) signal(rw_mutex);
+    signal(mutex);
+}
+
+Writer() {
+    wait(readTry);     // Block readers from entering
+    wait(rw_mutex);
+    // ---- Writing ----
+    signal(rw_mutex);
+    signal(readTry);
+}
+
+3. Third Readers–Writers Problem (Fair Solution / No Starvation)
+
+📌 Fairness → Neither readers nor writers starve.
+
+A queue (turnstile) ensures requests are served in order.
+
+C Code
+// Fair RW (No starvation)
+semaphore turnstile = 1; // Queue lock for fairness
+semaphore mutex = 1;
+semaphore rw_mutex = 1;
+int read_count = 0;
+
+Reader() {
+    wait(turnstile); signal(turnstile); // Ensure order
+    wait(mutex);
+    read_count++;
+    if (read_count == 1) wait(rw_mutex);
+    signal(mutex);
+
+    // ---- Reading ----
+
+    wait(mutex);
+    read_count--;
+    if (read_count == 0) signal(rw_mutex);
+    signal(mutex);
+}
+
+Writer() {
+    wait(turnstile);         // Block queue
+    wait(rw_mutex);
+    // ---- Writing ----
+    signal(rw_mutex);
+    signal(turnstile);
+}
+
+
+✅ Summary of Variants:
+
+Reader Priority → Readers never wait, Writers may starve.
+
+Writer Priority → Writers never wait, Readers may starve.
+
+Fair (No Starvation) → Both get fair access.

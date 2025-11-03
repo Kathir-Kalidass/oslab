@@ -1,0 +1,171 @@
+🍴 Dining Philosophers Problem – Variants in C
+1. Naive Solution (may cause deadlock)
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdio.h>
+
+#define N 5
+sem_t chopstick[N];
+
+void* philosopher(void* num) {
+    int i = *(int*)num;
+    sem_wait(&chopstick[i]);             // pick left
+    sem_wait(&chopstick[(i+1)%N]);       // pick right
+
+    printf("Philosopher %d eating\n", i);
+
+    sem_post(&chopstick[i]);             // put left
+    sem_post(&chopstick[(i+1)%N]);       // put right
+    return NULL;
+}
+
+int main() {
+    pthread_t t[N]; int id[N];
+    for (int i=0; i<N; i++) sem_init(&chopstick[i],0,1);
+
+    for (int i=0; i<N; i++) { id[i]=i; pthread_create(&t[i],NULL,philosopher,&id[i]); }
+    for (int i=0; i<N; i++) pthread_join(t[i],NULL);
+}
+
+
+⚠️ Deadlock possible if all pick left first.
+
+2. Asymmetric Solution (odd picks left first, even picks right first)
+
+→ Avoids deadlock.
+
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdio.h>
+
+#define N 5
+sem_t chopstick[N];
+
+void* philosopher(void* num) {
+    int i = *(int*)num;
+    if (i%2==0) {
+        sem_wait(&chopstick[(i+1)%N]);
+        sem_wait(&chopstick[i]);
+    } else {
+        sem_wait(&chopstick[i]);
+        sem_wait(&chopstick[(i+1)%N]);
+    }
+    printf("Philosopher %d eating\n", i);
+    sem_post(&chopstick[i]);
+    sem_post(&chopstick[(i+1)%N]);
+    return NULL;
+}
+
+int main() {
+    pthread_t t[N]; int id[N];
+    for (int i=0; i<N; i++) sem_init(&chopstick[i],0,1);
+
+    for (int i=0; i<N; i++) { id[i]=i; pthread_create(&t[i],NULL,philosopher,&id[i]); }
+    for (int i=0; i<N; i++) pthread_join(t[i],NULL);
+}
+
+3. Arbitrator (Butler) Solution
+
+→ A waiter limits number of philosophers eating at the same time.
+
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdio.h>
+
+#define N 5
+sem_t chopstick[N], room;
+
+void* philosopher(void* num) {
+    int i = *(int*)num;
+    sem_wait(&room); // request to enter dining room
+
+    sem_wait(&chopstick[i]);
+    sem_wait(&chopstick[(i+1)%N]);
+
+    printf("Philosopher %d eating\n", i);
+
+    sem_post(&chopstick[i]);
+    sem_post(&chopstick[(i+1)%N]);
+
+    sem_post(&room); // leave room
+    return NULL;
+}
+
+int main() {
+    pthread_t t[N]; int id[N];
+    sem_init(&room,0,N-1);   // allow max N-1 philosophers
+    for (int i=0; i<N; i++) sem_init(&chopstick[i],0,1);
+
+    for (int i=0; i<N; i++) { id[i]=i; pthread_create(&t[i],NULL,philosopher,&id[i]); }
+    for (int i=0; i<N; i++) pthread_join(t[i],NULL);
+}
+
+4. Monitor Solution (using pthread mutex & condition variables)
+
+→ Ensures fairness & avoids starvation.
+
+#include <pthread.h>
+#include <stdio.h>
+
+#define N 5
+#define THINKING 0
+#define HUNGRY   1
+#define EATING   2
+
+pthread_mutex_t mutex;
+pthread_cond_t cond[N];
+int state[N];
+
+void test(int i) {
+    if (state[i]==HUNGRY &&
+        state[(i+N-1)%N]!=EATING &&
+        state[(i+1)%N]!=EATING) {
+        state[i]=EATING;
+        pthread_cond_signal(&cond[i]);
+    }
+}
+
+void take_forks(int i) {
+    pthread_mutex_lock(&mutex);
+    state[i]=HUNGRY;
+    test(i);
+    while(state[i]!=EATING)
+        pthread_cond_wait(&cond[i],&mutex);
+    pthread_mutex_unlock(&mutex);
+}
+
+void put_forks(int i) {
+    pthread_mutex_lock(&mutex);
+    state[i]=THINKING;
+    test((i+N-1)%N);
+    test((i+1)%N);
+    pthread_mutex_unlock(&mutex);
+}
+
+void* philosopher(void* num) {
+    int i=*(int*)num;
+    take_forks(i);
+    printf("Philosopher %d eating\n", i);
+    put_forks(i);
+    return NULL;
+}
+
+int main() {
+    pthread_t t[N]; int id[N];
+    pthread_mutex_init(&mutex,NULL);
+    for(int i=0;i<N;i++){ state[i]=THINKING; pthread_cond_init(&cond[i],NULL); }
+
+    for(int i=0;i<N;i++){ id[i]=i; pthread_create(&t[i],NULL,philosopher,&id[i]); }
+    for(int i=0;i<N;i++) pthread_join(t[i],NULL);
+}
+
+
+✅ These four cover the classic variants:
+
+Naive (deadlock-prone)
+
+Asymmetric (avoids deadlock)
+
+Arbitrator/Butler (central authority)
+
+Monitor (fair, prevents starvation)

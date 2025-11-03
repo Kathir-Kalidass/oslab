@@ -1,0 +1,473 @@
+Operating Systems Lab — File System Related System Calls
+All programs below are complete, independent C programs. Copy each into its own .c file to compile, or compile directly via process substitution if your shell supports it.
+
+Build tip
+- Use a POSIX environment (Linux, WSL, or a UNIX-like shell). On Windows, prefer WSL.
+- Compile with: gcc program.c -o program
+
+Legend
+- Each section starts with: Program title, filename suggestion, usage, then full C code.
+- All code uses low-level system calls where appropriate.
+
+================================================================
+Task 1: File Creation and Writing
+Filename suggestion: task1_create_write.c
+Usage: ./task1_create_write [output_file] [name] [reg_no] [department]
+
+Code:
+/* task1_create_write.c */
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/stat.h>
+
+int main(int argc, char *argv[]) {
+    const char *out = (argc >= 2) ? argv[1] : "student.txt";
+    const char *name = (argc >= 3) ? argv[2] : "Alice";
+    const char *reg  = (argc >= 4) ? argv[3] : "22CS001";
+    const char *dept = (argc >= 5) ? argv[4] : "CSE";
+
+    int fd = open(out, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd < 0) { perror("open"); return 1; }
+
+    char buf[256];
+    int len = snprintf(buf, sizeof(buf), "Name: %s\nReg: %s\nDept: %s\n", name, reg, dept);
+    if (len < 0) { perror("snprintf"); close(fd); return 1; }
+
+    ssize_t n = write(fd, buf, (size_t)len);
+    if (n < 0) { perror("write"); close(fd); return 1; }
+
+    close(fd);
+    printf("Wrote details to %s\n", out);
+    return 0;
+}
+
+================================================================
+Task 2: Read File Contents
+Filename suggestion: task2_read.c
+Usage: ./task2_read <file>
+
+Code:
+/* task2_read.c */
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) { fprintf(stderr, "Usage: %s <file>\n", argv[0]); return 1; }
+    int fd = open(argv[1], O_RDONLY);
+    if (fd < 0) { perror("open"); return 1; }
+
+    char buf[4096];
+    ssize_t r;
+    while ((r = read(fd, buf, sizeof(buf))) > 0) {
+        ssize_t off = 0; 
+        while (off < r) {
+            ssize_t w = write(STDOUT_FILENO, buf + off, (size_t)(r - off));
+            if (w < 0) { perror("write"); close(fd); return 1; }
+            off += w;
+        }
+    }
+    if (r < 0) { perror("read"); close(fd); return 1; }
+    close(fd);
+    return 0;
+}
+
+================================================================
+Task 3: Copy File Contents
+Filename suggestion: task3_copy.c
+Usage: ./task3_copy <src> <dst>
+
+Code:
+/* task3_copy.c */
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+static int copy_fd(int in, int out) {
+    char buf[8192];
+    for (;;) {
+        ssize_t r = read(in, buf, sizeof(buf));
+        if (r == 0) return 0;  // done
+        if (r < 0) { perror("read"); return -1; }
+        ssize_t off = 0;
+        while (off < r) {
+            ssize_t w = write(out, buf + off, (size_t)(r - off));
+            if (w < 0) { perror("write"); return -1; }
+            off += w;
+        }
+    }
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 3) { fprintf(stderr, "Usage: %s <src> <dst>\n", argv[0]); return 1; }
+    int in = open(argv[1], O_RDONLY);
+    if (in < 0) { perror("open src"); return 1; }
+    int out = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (out < 0) { perror("open dst"); close(in); return 1; }
+    int rc = copy_fd(in, out);
+    close(in); close(out);
+    return rc == 0 ? 0 : 1;
+}
+
+================================================================
+Task 4: Append to a File
+Filename suggestion: task4_append.c
+Usage: ./task4_append <src> <dst>
+
+Code:
+/* task4_append.c */
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 3) { fprintf(stderr, "Usage: %s <src> <dst>\n", argv[0]); return 1; }
+    int in = open(argv[1], O_RDONLY);
+    if (in < 0) { perror("open src"); return 1; }
+    int out = open(argv[2], O_WRONLY | O_APPEND | O_CREAT, 0644);
+    if (out < 0) { perror("open dst"); close(in); return 1; }
+    char buf[8192];
+    ssize_t r;
+    while ((r = read(in, buf, sizeof(buf))) > 0) {
+        ssize_t off = 0;
+        while (off < r) {
+            ssize_t w = write(out, buf + off, (size_t)(r - off));
+            if (w < 0) { perror("write"); close(in); close(out); return 1; }
+            off += w;
+        }
+    }
+    if (r < 0) { perror("read"); }
+    close(in); close(out);
+    return r < 0 ? 1 : 0;
+}
+
+================================================================
+Task 5: File Pointer Movement (lseek)
+Filename suggestion: task5_lseek.c
+Usage: ./task5_lseek <file> [offset] [count]
+
+Code:
+/* task5_lseek.c */
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) { fprintf(stderr, "Usage: %s <file> [offset] [count]\n", argv[0]); return 1; }
+    off_t off = (argc >= 3) ? atoll(argv[2]) : 5;
+    size_t cnt = (argc >= 4) ? (size_t)atoll(argv[3]) : 32;
+
+    int fd = open(argv[1], O_RDONLY);
+    if (fd < 0) { perror("open"); return 1; }
+
+    off_t end = lseek(fd, 0, SEEK_END);
+    if (end == (off_t)-1) { perror("lseek SEEK_END"); close(fd); return 1; }
+    printf("File size: %lld bytes\n", (long long)end);
+
+    if (lseek(fd, off, SEEK_SET) == (off_t)-1) { perror("lseek SEEK_SET"); close(fd); return 1; }
+
+    char *buf = (char*)malloc(cnt + 1);
+    if (!buf) { perror("malloc"); close(fd); return 1; }
+    ssize_t r = read(fd, buf, cnt);
+    if (r < 0) { perror("read"); free(buf); close(fd); return 1; }
+    buf[r] = '\0';
+    printf("Data at offset %lld (up to %zu bytes):\n%.*s\n", (long long)off, cnt, (int)r, buf);
+    free(buf);
+    close(fd);
+    return 0;
+}
+
+================================================================
+Task 6: File Information (stat)
+Filename suggestion: task6_stat.c
+Usage: ./task6_stat <file>
+
+Code:
+/* task6_stat.c */
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <grp.h>
+
+static void mode_to_rwx(mode_t m, char out[11]) {
+    const char t = S_ISDIR(m)?'d':S_ISLNK(m)?'l':S_ISCHR(m)?'c':S_ISBLK(m)?'b':S_ISSOCK(m)?'s':S_ISFIFO(m)?'p':'-';
+    out[0]=t;
+    out[1]=(m&S_IRUSR)?'r':'-'; out[2]=(m&S_IWUSR)?'w':'-'; out[3]=(m&S_IXUSR)?'x':'-';
+    out[4]=(m&S_IRGRP)?'r':'-'; out[5]=(m&S_IWGRP)?'w':'-'; out[6]=(m&S_IXGRP)?'x':'-';
+    out[7]=(m&S_IROTH)?'r':'-'; out[8]=(m&S_IWOTH)?'w':'-'; out[9]=(m&S_IXOTH)?'x':'-';
+    out[10]='\0';
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) { fprintf(stderr, "Usage: %s <file>\n", argv[0]); return 1; }
+    struct stat st;
+    if (stat(argv[1], &st) < 0) { perror("stat"); return 1; }
+    char perm[11]; mode_to_rwx(st.st_mode, perm);
+    struct passwd *pw = getpwuid(st.st_uid);
+    struct group  *gr = getgrgid(st.st_gid);
+    printf("Size: %lld bytes\n", (long long)st.st_size);
+    printf("Perms: %s (octal %04o)\n", perm, st.st_mode & 07777);
+    printf("Owner: %s (%u)\n", pw?pw->pw_name:"?", st.st_uid);
+    printf("Group: %s (%u)\n", gr?gr->gr_name:"?", st.st_gid);
+    printf("Inode: %llu\n", (unsigned long long)st.st_ino);
+    return 0;
+}
+
+================================================================
+Task 7: Duplicate File Descriptor (dup, dup2)
+Filename suggestion: task7_dup.c
+Usage: ./task7_dup <file>
+
+Code:
+/* task7_dup.c */
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) { fprintf(stderr, "Usage: %s <file>\n", argv[0]); return 1; }
+    int fd = open(argv[1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd < 0) { perror("open"); return 1; }
+
+    int fd2 = dup(fd);
+    if (fd2 < 0) { perror("dup"); close(fd); return 1; }
+    const char *m1 = "Hello via fd\n";
+    if (write(fd, m1, strlen(m1)) < 0) { perror("write fd"); }
+    const char *m2 = "Hello via dup(fd)\n";
+    if (write(fd2, m2, strlen(m2)) < 0) { perror("write fd2"); }
+
+    // Redirect stdout to the same file using dup2
+    if (dup2(fd, STDOUT_FILENO) < 0) { perror("dup2"); }
+    printf("Hello via stdout after dup2\n");
+
+    close(fd2);
+    close(fd);
+    return 0;
+}
+
+================================================================
+Task 8: File Deletion (unlink)
+Filename suggestion: task8_unlink.c
+Usage: ./task8_unlink <file>
+
+Code:
+/* task8_unlink.c */
+#include <stdio.h>
+#include <unistd.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) { fprintf(stderr, "Usage: %s <file>\n", argv[0]); return 1; }
+    if (unlink(argv[1]) < 0) { perror("unlink"); return 1; }
+    printf("Deleted: %s\n", argv[1]);
+    return 0;
+}
+
+================================================================
+Task 9: Directory Operations (mkdir, chdir, rmdir, getcwd)
+Filename suggestion: task9_dirs.c
+Usage: ./task9_dirs [dirname]
+
+Code:
+/* task9_dirs.c */
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <string.h>
+
+int main(int argc, char *argv[]) {
+    const char *dir = (argc >= 2) ? argv[1] : "mydir";
+
+    if (mkdir(dir, 0755) < 0) { perror("mkdir"); return 1; }
+    printf("Created dir: %s\n", dir);
+
+    char cwd[1024];
+    if (!getcwd(cwd, sizeof(cwd))) { perror("getcwd"); return 1; }
+    printf("CWD before chdir: %s\n", cwd);
+
+    if (chdir(dir) < 0) { perror("chdir"); return 1; }
+    if (!getcwd(cwd, sizeof(cwd))) { perror("getcwd"); return 1; }
+    printf("CWD inside dir: %s\n", cwd);
+
+    if (chdir("..") < 0) { perror("chdir .."); return 1; }
+    if (rmdir(dir) < 0) { perror("rmdir"); return 1; }
+    printf("Removed dir: %s\n", dir);
+    return 0;
+}
+
+================================================================
+Task 10: Combined Operations (create, write, read, seek, close)
+Filename suggestion: task10_combined.c
+Usage: ./task10_combined [file]
+
+Code:
+/* task10_combined.c */
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/stat.h>
+
+int main(int argc, char *argv[]) {
+    const char *file = (argc >= 2) ? argv[1] : "demo.txt";
+    int fd = open(file, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    if (fd < 0) { perror("open"); return 1; }
+
+    const char *msg = "Operating Systems Lab\nFile system syscalls demo\n";
+    if (write(fd, msg, strlen(msg)) < 0) { perror("write"); close(fd); return 1; }
+
+    if (lseek(fd, 0, SEEK_SET) == (off_t)-1) { perror("lseek"); close(fd); return 1; }
+    char buf[256];
+    ssize_t r = read(fd, buf, sizeof(buf)-1);
+    if (r < 0) { perror("read"); close(fd); return 1; }
+    buf[r] = '\0';
+    printf("Read back:\n%s", buf);
+
+    close(fd);
+    return 0;
+}
+
+================================================================
+Viva-Focused Mini Programs (Q1–Q4)
+
+Q1) Print file size using stat()
+Filename suggestion: q1_filesize.c
+Usage: ./q1_filesize <file>
+
+Code:
+/* q1_filesize.c */
+#include <stdio.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) { fprintf(stderr, "Usage: %s <file>\n", argv[0]); return 1; }
+    struct stat st;
+    if (stat(argv[1], &st) < 0) { perror("stat"); return 1; }
+    printf("Size: %ld bytes\n", (long)st.st_size);
+    return 0;
+}
+
+----------------------------------------------------------------
+Q2) Move to end of file and append data
+Filename suggestion: q2_append.c
+Usage: ./q2_append <file> [text]
+
+Code:
+/* q2_append.c */
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) { fprintf(stderr, "Usage: %s <file> [text]\n", argv[0]); return 1; }
+    const char *text = (argc >= 3) ? argv[2] : "New entry\n";
+    int fd = open(argv[1], O_WRONLY | O_APPEND | O_CREAT, 0644);
+    if (fd < 0) { perror("open"); return 1; }
+    if (write(fd, text, strlen(text)) < 0) { perror("write"); close(fd); return 1; }
+    close(fd);
+    return 0;
+}
+
+----------------------------------------------------------------
+Q3) Delete a file
+Filename suggestion: q3_delete.c
+Usage: ./q3_delete <file>
+
+Code:
+/* q3_delete.c */
+#include <stdio.h>
+#include <unistd.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) { fprintf(stderr, "Usage: %s <file>\n", argv[0]); return 1; }
+    if (unlink(argv[1]) < 0) { perror("unlink"); return 1; }
+    printf("Deleted %s\n", argv[1]);
+    return 0;
+}
+
+----------------------------------------------------------------
+Q4) Create directory and display current path
+Filename suggestion: q4_mkdir_pwd.c
+Usage: ./q4_mkdir_pwd [dirname]
+
+Code:
+/* q4_mkdir_pwd.c */
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+int main(int argc, char *argv[]) {
+    const char *dir = (argc >= 2) ? argv[1] : "mydir";
+    char path[1024];
+
+    if (mkdir(dir, 0755) < 0) { perror("mkdir"); return 1; }
+    if (chdir(dir) < 0) { perror("chdir"); return 1; }
+    if (!getcwd(path, sizeof(path))) { perror("getcwd"); return 1; }
+    printf("Current path: %s\n", path);
+    return 0;
+}
+
+================================================================
+Notes
+- Always check return values of system calls and handle errors.
+- Use man pages: man 2 open, man 2 read, man 2 write, man 2 lseek, man 2 stat, man 2 unlink, man 2 mkdir, man 2 chdir, man 2 rmdir, man 2 dup, man 2 dup2.
+- For Windows hosts, compile and run under WSL or a Linux VM for full POSIX behavior.
+
+
+
+
+
+
+
+
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
+int main() {
+    int fd;
+    char buffer[100];
+
+    // 1. Create or open a file
+    fd = open("example.txt", O_CREAT | O_RDWR, 0644);
+    if (fd < 0) {
+        perror("open");
+        return 1;
+    }
+
+    // 2. Write to the file
+    char *text = "Hello, File System!";
+    write(fd, text, strlen(text));
+
+    // 3. Seek to beginning
+    lseek(fd, 0, SEEK_SET);
+
+    // 4. Read from the file
+    int n = read(fd, buffer, sizeof(buffer)-1);
+    buffer[n] = '\0';
+    printf("File content: %s\n", buffer);
+
+    // 5. Close the file
+    close(fd);
+
+    return 0;
+}

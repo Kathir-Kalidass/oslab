@@ -1,0 +1,153 @@
+This is a classic process synchronization problem where:
+
+A barber sleeps if no customers are present.
+
+If a customer arrives and all chairs are occupied, they leave.
+
+If the barber is cutting hair, customers wait in the waiting chairs.
+
+If the barber is asleep and a customer arrives, they wake him up.
+
+We solve this using semaphores + mutex.
+
+1. Sleeping Barber – Basic Semaphore Solution
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define CHAIRS 3  // Waiting chairs
+
+sem_t customers;   // Count waiting customers
+sem_t barber;      // Barber is ready
+pthread_mutex_t accessSeats;
+
+int freeSeats = CHAIRS;
+
+void *barberWork(void *arg) {
+    while (1) {
+        sem_wait(&customers);        // Wait for a customer
+        pthread_mutex_lock(&accessSeats);
+        freeSeats++;                 // One seat gets free
+        sem_post(&barber);           // Barber is ready
+        pthread_mutex_unlock(&accessSeats);
+
+        printf("💈 Barber cutting hair...\n");
+        sleep(2); // cutting hair
+    }
+}
+
+void *customerWork(void *arg) {
+    pthread_mutex_lock(&accessSeats);
+    if (freeSeats > 0) {
+        freeSeats--;                 // Take a seat
+        sem_post(&customers);        // Notify barber
+        pthread_mutex_unlock(&accessSeats);
+
+        sem_wait(&barber);           // Wait until barber ready
+        printf("👤 Customer getting haircut\n");
+    } else {
+        printf("🚶 Customer left (no seats)\n");
+        pthread_mutex_unlock(&accessSeats);
+    }
+}
+
+int main() {
+    pthread_t b, c[10];
+
+    sem_init(&customers, 0, 0);
+    sem_init(&barber, 0, 0);
+    pthread_mutex_init(&accessSeats, NULL);
+
+    pthread_create(&b, NULL, barberWork, NULL);
+
+    for (int i = 0; i < 10; i++) {
+        sleep(1);
+        pthread_create(&c[i], NULL, customerWork, NULL);
+    }
+
+    pthread_join(b, NULL);
+}
+
+2. Sleeping Barber with Multiple Barbers
+
+Here we extend with 2 barbers. Customers can be served by either.
+
+#define BARBERS 2
+sem_t barberReady;  // Count available barbers
+
+void *barberWork(void *id) {
+    int bId = *(int *)id;
+    while (1) {
+        sem_wait(&customers);
+        pthread_mutex_lock(&accessSeats);
+        freeSeats++;
+        pthread_mutex_unlock(&accessSeats);
+
+        sem_post(&barberReady);   // One barber free
+        printf("💈 Barber %d cutting hair...\n", bId);
+        sleep(2);
+    }
+}
+
+void *customerWork(void *arg) {
+    pthread_mutex_lock(&accessSeats);
+    if (freeSeats > 0) {
+        freeSeats--;
+        sem_post(&customers);
+        pthread_mutex_unlock(&accessSeats);
+
+        sem_wait(&barberReady);
+        printf("👤 Customer getting haircut\n");
+    } else {
+        printf("🚶 Customer left (no seats)\n");
+        pthread_mutex_unlock(&accessSeats);
+    }
+}
+
+3. Sleeping Barber with FIFO Queue
+
+Here, instead of random, customers wait in queue order.
+
+#include <queue>
+std::queue<int> q;   // Waiting queue
+
+void *customerWork(void *arg) {
+    int id = *(int *)arg;
+    pthread_mutex_lock(&accessSeats);
+    if (freeSeats > 0) {
+        freeSeats--;
+        q.push(id);
+        sem_post(&customers);
+        pthread_mutex_unlock(&accessSeats);
+
+        sem_wait(&barber);
+        printf("👤 Customer %d getting haircut\n", id);
+    } else {
+        printf("🚶 Customer %d left\n", id);
+        pthread_mutex_unlock(&accessSeats);
+    }
+}
+
+void *barberWork(void *arg) {
+    while (1) {
+        sem_wait(&customers);
+        pthread_mutex_lock(&accessSeats);
+        int id = q.front();
+        q.pop();
+        freeSeats++;
+        sem_post(&barber);
+        pthread_mutex_unlock(&accessSeats);
+
+        printf("💈 Barber cutting customer %d\n", id);
+        sleep(2);
+    }
+}
+
+Variants Implemented
+
+Single Barber, Semaphore-based ✅
+
+Multiple Barbers ✅
+
+FIFO Queue (Fair Scheduling) ✅

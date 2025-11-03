@@ -1,0 +1,78 @@
+1. execl() Example
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    printf("Before execl()\n");
+    execl("/bin/ls", "ls", "-l", NULL);  // Arguments are individual strings
+    perror("execl failed");  // Only prints if execl fails
+    return 0;
+}
+
+2. execle() Example (with environment variables)
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    char *env[] = {"MYVAR=Hello", "PATH=/bin", NULL};
+    execle("/usr/bin/printenv", "printenv", "MYVAR", NULL, env);
+    perror("execle failed");
+    return 0;
+}
+
+3. execlp() Example (uses PATH)
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    execlp("ls", "ls", "-l", NULL);  // Searches PATH for ls
+    perror("execlp failed");
+    return 0;
+}
+
+4. execv() Example (arguments as array)
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    char *args[] = {"ls", "-l", NULL};
+    execv("/bin/ls", args);  // Arguments passed as array
+    perror("execv failed");
+    return 0;
+}
+
+5. execve() Example (arguments + environment)
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    char *args[] = {"printenv", "MYVAR", NULL};
+    char *env[] = {"MYVAR=Hello", NULL};
+    execve("/usr/bin/printenv", args, env);
+    perror("execve failed");
+    return 0;
+}
+
+6. execvp() Example (searches PATH, arguments as array)
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    char *args[] = {"ls", "-l", NULL};
+    execvp("ls", args);  // Uses PATH to find ls
+    perror("execvp failed");
+    return 0;
+}
+
+7. execvpe() Example (PATH + custom environment)
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    char *args[] = {"printenv", "MYVAR", NULL};
+    char *env[] = {"MYVAR=Hello", NULL};
+    execvpe("printenv", args, env);  // Uses PATH + custom env
+    perror("execvpe failed");
+    return 0;
+}

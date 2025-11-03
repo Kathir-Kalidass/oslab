@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+struct msgbuf {
+    long mtype;
+    char mtext[100];
+};
+
+int main() {
+    key_t key;
+    int msgid;
+    struct msgbuf message;
+
+    // Get key
+    key = ftok("msgqueuefile", 65);
+
+    // Access message queue
+    msgid = msgget(key, 0666);
+    if (msgid == -1) {
+        perror("msgget");
+        exit(1);
+    }
+
+    // Receive message
+    if (msgrcv(msgid, &message, sizeof(message.mtext), 1, 0) == -1) {
+        perror("msgrcv");
+        exit(1);
+    }
+
+    printf("Message received: %s\n", message.mtext);
+
+    // Delete the message queue
+    msgctl(msgid, IPC_RMID, NULL);
+
+    return 0;
+}

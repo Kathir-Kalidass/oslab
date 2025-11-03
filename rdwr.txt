@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t mutex;    // protect readcount
+sem_t writeSem; // mutual exclusion for writers
+int readcount = 0;
+
+void* reader(void* arg) {
+    int id = *((int*)arg);
+
+    while(1) {
+        // Entry section
+        sem_wait(&mutex);
+        readcount++;
+        if(readcount == 1) {          // first reader locks the writers
+            sem_wait(&writeSem);
+        }
+        sem_post(&mutex);
+
+        // Critical section
+        printf("Reader %d is reading\n", id);
+        sleep(1); // simulate reading
+
+        // Exit section
+        sem_wait(&mutex);
+        readcount--;
+        if(readcount == 0) {          // last reader releases writers
+            sem_post(&writeSem);
+        }
+        sem_post(&mutex);
+
+        // Remainder section
+        sleep(1); // simulate other operations
+    }
+    return NULL;
+}
+
+void* writer(void* arg) {
+    int id = *((int*)arg);
+
+    while(1) {
+        // Entry section
+        sem_wait(&writeSem);
+
+        // Critical section
+        printf("Writer %d is writing\n", id);
+        sleep(2); // simulate writing
+
+        // Exit section
+        sem_post(&writeSem);
+
+        // Remainder section
+        sleep(1); // simulate other operations
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t r[5], w[2];   // 5 readers, 2 writers
+    int ids_r[5] = {1,2,3,4,5};
+    int ids_w[2] = {1,2};
+
+    // Initialize semaphores
+    sem_init(&mutex, 0, 1);
+    sem_init(&writeSem, 0, 1);
+
+    // Create reader threads
+    for(int i=0; i<5; i++) {
+        pthread_create(&r[i], NULL, reader, &ids_r[i]);
+    }
+
+    // Create writer threads
+    for(int i=0; i<2; i++) {
+        pthread_create(&w[i], NULL, writer, &ids_w[i]);
+    }
+
+    // Join threads (optional, program runs infinitely)
+    for(int i=0; i<5; i++) pthread_join(r[i], NULL);
+    for(int i=0; i<2; i++) pthread_join(w[i], NULL);
+
+    // Destroy semaphores
+    sem_destroy(&mutex);
+    sem_destroy(&writeSem);
+
+    return 0;
+}

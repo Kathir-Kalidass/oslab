@@ -1,0 +1,298 @@
+🔹 Deadlock Problems – Variants
+1. Deadlock Detection (Wait-for Graph – Single Instance)
+
+👉 Detect cycle in Wait-for Graph.
+
+#include <stdio.h>
+#include <stdbool.h>
+
+#define N 4   // number of processes
+
+int WFG[N][N] = {
+    {0,1,0,0},
+    {0,0,1,0},
+    {0,0,0,1},
+    {1,0,0,0}  // cycle exists (P3->P0)
+};
+
+bool isCycle(int v, bool visited[], bool recStack[]) {
+    visited[v] = recStack[v] = true;
+    for (int j = 0; j < N; j++) {
+        if (WFG[v][j]) {
+            if (!visited[j] && isCycle(j, visited, recStack))
+                return true;
+            else if (recStack[j])
+                return true;
+        }
+    }
+    recStack[v] = false;
+    return false;
+}
+
+bool deadlockExists() {
+    bool visited[N], recStack[N];
+    for (int i = 0; i < N; i++) visited[i] = recStack[i] = false;
+    for (int i = 0; i < N; i++)
+        if (!visited[i] && isCycle(i, visited, recStack))
+            return true;
+    return false;
+}
+
+int main() {
+    if (deadlockExists())
+        printf("Deadlock detected!\n");
+    else
+        printf("No deadlock.\n");
+    return 0;
+}
+
+2. Deadlock Avoidance (Banker’s Algorithm – Multiple Instances)
+#include <stdio.h>
+#include <stdbool.h>
+
+#define P 5 // processes
+#define R 3 // resources
+
+int alloc[P][R] = {
+    {0,1,0},
+    {2,0,0},
+    {3,0,2},
+    {2,1,1},
+    {0,0,2}
+};
+
+int max[P][R] = {
+    {7,5,3},
+    {3,2,2},
+    {9,0,2},
+    {2,2,2},
+    {4,3,3}
+};
+
+int avail[R] = {3,3,2};
+
+void calculateNeed(int need[P][R]) {
+    for (int i = 0; i < P; i++)
+        for (int j = 0; j < R; j++)
+            need[i][j] = max[i][j] - alloc[i][j];
+}
+
+bool isSafe() {
+    int need[P][R];
+    calculateNeed(need);
+
+    bool finish[P] = {0};
+    int work[R];
+    for (int i = 0; i < R; i++) work[i] = avail[i];
+
+    int safeSeq[P], idx = 0;
+
+    for (int count = 0; count < P; count++) {
+        bool found = false;
+        for (int p = 0; p < P; p++) {
+            if (!finish[p]) {
+                bool canRun = true;
+                for (int j = 0; j < R; j++)
+                    if (need[p][j] > work[j]) { canRun = false; break; }
+                if (canRun) {
+                    for (int j = 0; j < R; j++)
+                        work[j] += alloc[p][j];
+                    safeSeq[idx++] = p;
+                    finish[p] = true;
+                    found = true;
+                }
+            }
+        }
+        if (!found) return false;
+    }
+
+    printf("System is in SAFE state.\nSafe sequence: ");
+    for (int i = 0; i < P; i++) printf("P%d ", safeSeq[i]);
+    printf("\n");
+    return true;
+}
+
+int main() {
+    if (!isSafe())
+        printf("System is in UNSAFE state (deadlock possible).\n");
+    return 0;
+}
+
+3. Deadlock Prevention
+
+👉 Prevent deadlock by enforcing ordering (e.g., processes must request resources in increasing order).
+
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+#define RESOURCES 2
+pthread_mutex_t lock[RESOURCES];
+
+void* process(void* arg) {
+    int id = *(int*)arg;
+
+    // enforce ordering rule: always lock lower ID resource first
+    int r1 = id % RESOURCES;
+    int r2 = (id + 1) % RESOURCES;
+
+    if (r1 > r2) { int temp = r1; r1 = r2; r2 = temp; }
+
+    pthread_mutex_lock(&lock[r1]);
+    printf("Process %d acquired resource %d\n", id, r1);
+    sleep(1);
+
+    pthread_mutex_lock(&lock[r2]);
+    printf("Process %d acquired resource %d\n", id, r2);
+
+    pthread_mutex_unlock(&lock[r2]);
+    pthread_mutex_unlock(&lock[r1]);
+    printf("Process %d released resources.\n", id);
+
+    return NULL;
+}
+
+int main() {
+    pthread_t t[4];
+    int ids[4] = {0,1,2,3};
+
+    for (int i=0;i<RESOURCES;i++) pthread_mutex_init(&lock[i], NULL);
+    for (int i=0;i<4;i++) pthread_create(&t[i], NULL, process, &ids[i]);
+    for (int i=0;i<4;i++) pthread_join(t[i], NULL);
+    return 0;
+}
+
+
+✅ Summary of Variants:
+
+Detection → Wait-for Graph cycle check
+
+Avoidance → Banker’s Algorithm
+
+Prevention → Ordering rule / Resource hierarchy
+
+👉 Do you want me to also add a Deadlock Recovery variant (kill process or preempt resources) with full code?
+
+You said:
+get dynamic resources
+ChatGPT said:
+
+Got it 👍 You now want Deadlock Detection with dynamic resources (multiple instances per resource type).
+
+This is usually handled with Banker’s Algorithm style deadlock detection.
+
+🔹 Key Idea
+
+For single instance → Use Wait-for Graph (WFG) → detect cycle.
+
+For multiple instances (dynamic resources) → Use Deadlock Detection Algorithm (like Banker’s Safety check).
+
+🔹 Data Structures
+int n; // number of processes
+int m; // number of resource types
+
+int Allocation[n][m];  // Allocation[i][j] = resources of type j allocated to process i
+int Request[n][m];     // Request[i][j] = resources of type j still needed by process i
+int Available[m];      // Available[j] = available instances of resource j
+
+🔹 Algorithm (Deadlock Detection)
+
+Work = Available
+
+Finish[i] = false if Allocation[i] != 0, else true
+
+Find a process i such that:
+
+Finish[i] == false
+
+Request[i] <= Work
+
+If found:
+
+Work += Allocation[i]
+
+Finish[i] = true
+
+Repeat step 3
+
+If no such process exists, and some Finish[i] == false, → Deadlock.
+
+🔹 C Code (Dynamic Resources Deadlock Check)
+#include <stdio.h>
+#include <stdbool.h>
+
+#define N 3  // processes
+#define M 3  // resources
+
+int Allocation[N][M] = {
+    {0, 1, 0},
+    {2, 0, 0},
+    {3, 0, 3}
+};
+
+int Request[N][M] = {
+    {0, 0, 0},
+    {2, 0, 2},
+    {0, 0, 0}
+};
+
+int Available[M] = {0, 0, 1};
+
+bool detectDeadlock() {
+    bool Finish[N];
+    int Work[M];
+    for (int j = 0; j < M; j++) Work[j] = Available[j];
+
+    for (int i = 0; i < N; i++) {
+        bool allocated = false;
+        for (int j = 0; j < M; j++) {
+            if (Allocation[i][j] != 0) {
+                allocated = true; break;
+            }
+        }
+        Finish[i] = !allocated; // true if nothing allocated
+    }
+
+    bool progress = true;
+    while (progress) {
+        progress = false;
+        for (int i = 0; i < N; i++) {
+            if (!Finish[i]) {
+                bool possible = true;
+                for (int j = 0; j < M; j++) {
+                    if (Request[i][j] > Work[j]) {
+                        possible = false; break;
+                    }
+                }
+                if (possible) {
+                    for (int j = 0; j < M; j++)
+                        Work[j] += Allocation[i][j];
+                    Finish[i] = true;
+                    progress = true;
+                }
+            }
+        }
+    }
+
+    // Check for deadlock
+    for (int i = 0; i < N; i++) {
+        if (!Finish[i]) {
+            printf("Deadlock detected! Process P%d is stuck.\n", i);
+            return true;
+        }
+    }
+    printf("No deadlock.\n");
+    return false;
+}
+
+int main() {
+    detectDeadlock();
+    return 0;
+}
+
+
+✅ This works for dynamic (multi-instance) resources.
+
+For single instance → WFG cycle detection.
+
+For multi-instance → Banker’s detection.

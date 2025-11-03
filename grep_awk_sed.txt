@@ -1,0 +1,1051 @@
+grep Command in UNIX
+
+General Purpose:
+grep (Global Regular Expression Print) is used to search text in files or standard input based on a pattern.
+
+1. Basic Syntax
+grep [options] "pattern" filename
+
+
+pattern → word/regex to search
+
+filename → file(s) to search in
+
+options → control output formatting
+
+2. Basic Search
+🔹 Example:
+grep "hello" file.txt
+
+
+Application: Finds all lines containing the word "hello".
+
+Output (if file.txt contains):
+
+hello world
+this is a hello test
+
+3. Case-Insensitive Search
+
+Option: -i
+
+grep -i "unix" notes.txt
+
+
+Matches UNIX, unix, Unix etc.
+
+Output:
+
+I love UNIX systems
+unix is powerful
+
+4. Count Matches
+
+Option: -c
+
+grep -c "error" logfile.txt
+
+
+Application: Count how many times "error" appears.
+
+Output:
+
+15
+
+5. Show Line Numbers
+
+Option: -n
+
+grep -n "main" program.c
+
+
+Output:
+
+12:int main() {
+45:// main function ends
+
+6. Show Only Matching Part
+
+Option: -o
+
+grep -o "cat" animals.txt
+
+
+Output (if file contains cat, dog, catfish, cat):
+
+cat
+cat
+
+7. Match Whole Word
+
+Option: -w
+
+grep -w "cat" animals.txt
+
+
+Output (ignores "catfish"):
+
+I have a cat
+black cat is here
+
+8. Invert Match (Show Lines Without Pattern)
+
+Option: -v
+
+grep -v "error" logfile.txt
+
+
+Application: Show all lines except those containing "error".
+
+9. Search in Multiple Files
+grep "main" *.c
+
+
+Output:
+
+file1.c:int main() {
+file2.c:// main function
+
+10. Recursive Search in Directories
+
+Option: -r
+
+grep -r "TODO" /home/kathir/projects
+
+
+Application: Search inside all files under a directory.
+
+11. Extended Regex Search
+
+Option: -E (same as egrep)
+
+grep -E "cat|dog" animals.txt
+
+
+Application: Matches "cat" OR "dog".
+
+Output:
+
+cat is cute
+dog is loyal
+
+12. Fixed String Search
+
+Option: -F (like fgrep)
+
+grep -F "a.b" file.txt
+
+
+Application: Matches literally a.b instead of regex.
+
+13. Show Context (Before & After Matches)
+
+Options:
+
+-A n → Show n lines after match
+
+-B n → Show n lines before match
+
+-C n → Show n lines before & after
+
+🔹 Example:
+grep -A2 "error" logfile.txt
+
+
+Output:
+
+error: failed to load
+next line of log
+another detail line
+
+14. Display File Names with Matches
+
+Option: -l
+
+grep -l "main" *.c
+
+
+Output:
+
+program1.c
+program2.c
+
+15. Display File Names Without Matches
+
+Option: -L
+
+grep -L "main" *.c
+
+
+Output:
+
+helper.c
+notes.c
+
+16. Show Number of Matches per File
+
+Option: -H (default when multiple files)
+
+grep -H "int" *.c
+
+
+Output:
+
+file1.c:int a=10;
+file2.c:int main() {
+
+17. Interactive Example with Pipe
+ps aux | grep "firefox"
+
+
+Application: Find running processes related to Firefox.
+
+Output:
+
+kathir   4321  5.2  firefox
+
+✅ Summary of Common Options
+Option	Meaning
+-i	Ignore case
+-c	Count matches
+-n	Show line numbers
+-o	Print only matching word
+-w	Match whole word
+-v	Invert match
+-r	Recursive search
+-E	Extended regex (egrep)
+-F	Fixed string (fgrep)
+-A n	n lines after match
+-B n	n lines before match
+-C n	n lines before & after
+-l	Show filenames with matches
+-L	Show filenames without matches
+
+👉 Do you want me to also prepare regular expression patterns with grep (like ^, $, [a-z], .*, etc.) with examples, so you get the full exam/lab coverage?
+
+You said:
+regex different style of using in this grep or sed or awk
+ChatGPT said:
+
+Perfect 🚀 You’re now moving from basic search into the power of regular expressions (regex) in UNIX commands.
+Regex can be used with grep, sed, and awk for searching, filtering, and text processing. I’ll give you:
+
+✅ Explanation of regex styles
+
+✅ Syntax in grep, sed, awk
+
+✅ Applications with examples & outputs
+
+🔤 Regular Expressions (Regex) in UNIX
+
+Regex = pattern language used to match strings.
+
+🎯 1. Basic Regex Metacharacters
+Regex	Meaning	Example with grep	Output
+^	Start of line	grep "^Hello" file.txt	Matches lines starting with "Hello"
+$	End of line	grep "end$" file.txt	Matches lines ending with "end"
+.	Any single character	grep "c.t" file.txt	Matches cat, cut, cot
+*	Zero or more of preceding char	grep "go*gle" file.txt	Matches ggle, gogle, google
+\?	Zero or one of preceding char	grep -E "colou?r" file.txt	Matches color or colour
++	One or more (Extended)	grep -E "a+b"	Matches ab, aab, aaab
+[]	Match any char in set	grep "[aeiou]" file.txt	Matches vowels
+[^ ]	Match anything except set	grep "[^0-9]" file.txt	Matches lines without digits
+{n,m}	Repetition (Extended)	grep -E "a{2,4}" file.txt	Matches aa, aaa, aaaa
+|	OR condition	grep -E "cat|dog"	Matches cat or dog
+🎯 2. Using Regex with grep
+Example file: animals.txt
+cat
+dog
+bat
+rat
+elephant
+catfish
+
+
+Match lines starting with "c"
+
+grep "^c" animals.txt
+
+
+Output:
+
+cat
+catfish
+
+
+Match lines ending with "t"
+
+grep "t$" animals.txt
+
+
+Output:
+
+bat
+rat
+elephant
+
+
+Match either "cat" or "dog"
+
+grep -E "cat|dog" animals.txt
+
+
+Output:
+
+cat
+dog
+catfish
+
+
+Match exactly "cat" (whole word)
+
+grep -w "cat" animals.txt
+
+
+Output:
+
+cat
+
+🎯 3. Using Regex with sed (Stream Editor)
+
+sed is used for search & replace with regex.
+
+Replace "cat" with "tiger"
+sed 's/cat/tiger/' animals.txt
+
+
+Output:
+
+tiger
+dog
+bat
+rat
+elephant
+tigerfish
+
+Remove all digits
+echo "abc123def" | sed 's/[0-9]//g'
+
+
+Output:
+
+abcdef
+
+Replace multiple spaces with single space
+echo "Hello    World" | sed 's/  */ /g'
+
+
+Output:
+
+Hello World
+
+🎯 4. Using Regex with awk
+
+awk works on fields and patterns with regex.
+
+Print lines containing "cat"
+awk '/cat/ {print}' animals.txt
+
+
+Output:
+
+cat
+catfish
+
+Print lines starting with "c"
+awk '/^c/ {print}' animals.txt
+
+
+Output:
+
+cat
+catfish
+
+Print second column if it matches digits
+echo "name 123" | awk '$2 ~ /^[0-9]+$/ {print $2}'
+
+
+Output:
+
+123
+
+Replace using regex
+echo "apple orange banana" | awk '{gsub(/apple/, "mango"); print}'
+
+
+Output:
+
+mango orange banana
+
+✅ Quick Comparison
+Tool	Usage with Regex	Best Use
+grep	grep -E "pattern" file	Searching text in files
+sed	sed 's/regex/replace/' file	Search & Replace in streams
+awk	awk '/regex/ { action }' file	Field-based filtering & processing
+
+⚡ Example Combo:
+
+cat logfile.txt | grep "error" | sed 's/error/ERROR/' | awk '{print NR,$0}'
+
+
+Finds "error"
+
+Replaces with "ERROR"
+
+Prints with line number
+
+👉 Do you want me to also prepare a table of common regex patterns (emails, phone numbers, dates, IPs, etc.) with grep/sed/awk examples? That will give you a ready-made lab/cheat sheet.
+
+You said:
+sed  using in different styles applicatin syntax eg outputs in deatil 
+ChatGPT said:
+
+Excellent 👍 — sed (Stream Editor) is one of the most powerful UNIX tools.
+It is mainly used for searching, replacing, inserting, deleting, and transforming text using regex.
+I’ll give you a detailed breakdown:
+
+✅ Explanation
+
+✅ Syntax
+
+✅ Applications
+
+✅ Examples with outputs
+
+📝 sed in UNIX (Stream Editor)
+1. Basic Syntax
+sed [options] 'command' filename
+
+
+command → operation (s, d, i, a, etc.)
+
+options:
+
+-n → suppress automatic printing (print only what you specify)
+
+-i → edit file in place (save changes directly)
+
+2. Substitute (Search & Replace)
+Replace first occurrence of "cat" with "dog"
+sed 's/cat/dog/' animals.txt
+
+
+Input (animals.txt):
+
+cat is here
+black cat is cute
+
+
+Output:
+
+dog is here
+black dog is cute
+
+Replace all occurrences in a line
+sed 's/cat/dog/g' animals.txt
+
+
+Output:
+
+dog is here
+black dog is cute
+
+Case-insensitive replace
+sed 's/cat/dog/Ig' animals.txt
+
+
+I → ignore case
+Matches cat, Cat, CAT...
+
+Replace only in specific line
+sed '2s/cat/dog/' animals.txt
+
+
+Only replaces on line 2.
+
+3. Deleting Lines
+Delete line 3
+sed '3d' file.txt
+
+Delete range of lines (2 to 5)
+sed '2,5d' file.txt
+
+Delete lines matching a pattern
+sed '/error/d' logfile.txt
+
+
+Removes all lines containing "error".
+
+4. Print Specific Lines
+Print only line 2
+sed -n '2p' file.txt
+
+Print range of lines (3–6)
+sed -n '3,6p' file.txt
+
+Print only lines with a match
+sed -n '/error/p' logfile.txt
+
+5. Insert and Append
+Insert text before line 3
+sed '3i\This is inserted' file.txt
+
+
+Output:
+
+line1
+line2
+This is inserted
+line3
+...
+
+Append text after line 3
+sed '3a\This is appended' file.txt
+
+6. Change (Replace Entire Line)
+Replace line 2 with new text
+sed '2c\This is the new line' file.txt
+
+7. Multiple Commands
+Using -e option
+sed -e 's/cat/dog/g' -e 's/rat/mouse/g' animals.txt
+
+Using script file (commands.sed)
+s/cat/dog/g
+s/rat/mouse/g
+
+
+Run:
+
+sed -f commands.sed animals.txt
+
+8. Transform (Character by Character)
+Convert lowercase to uppercase
+echo "unix" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'
+
+
+Output:
+
+UNIX
+
+9. In-place Editing
+Replace text directly in the file
+sed -i 's/old/new/g' file.txt
+
+
+(Modifies file.txt permanently)
+
+10. Advanced Examples
+Replace only nth occurrence in a line
+sed 's/cat/dog/2' animals.txt
+
+
+Replaces only the second occurrence of "cat".
+
+Add line numbers to file
+sed = file.txt | sed 'N;s/\n/\t/'
+
+
+Output:
+
+1   line1
+2   line2
+3   line3
+
+Comment out all lines starting with #
+sed 's/^/#/' script.sh
+
+Remove leading/trailing spaces
+sed 's/^[ \t]*//;s/[ \t]*$//' file.txt
+
+✅ Quick Reference (Sed Commands)
+Command	Action
+s/pattern/replacement/	Substitute text
+s///g	Replace all occurrences
+s///n	Replace nth occurrence
+d	Delete line(s)
+p	Print line(s)
+i\text	Insert before line
+a\text	Append after line
+c\text	Replace entire line
+y/abc/xyz/	Transform characters
+-i	Edit file in place
+
+🔥 With these, you can do search, replace, delete, transform, insert, batch-edit files with sed.
+
+Would you like me to also make a table comparing the same regex tasks in grep, sed, and awk side-by-side (like delete, print, replace, extract)? That will give you a full UNIX text-processing cheat sheet.
+
+You said:
+qwk using in different styles applicatin syntax eg outputs in deatil
+ChatGPT said:
+
+It looks like you meant awk (not qwk).
+awk is one of the most powerful text-processing tools in UNIX/Linux. It works line by line, splits fields by a delimiter (default is whitespace), and allows filtering, transformation, and reporting.
+
+Here’s a detailed explanation of using awk in different styles with syntax, applications, and example outputs:
+
+🔹 Basic Syntax
+awk 'pattern { action }' filename
+
+
+pattern → condition to match (optional)
+
+action → what to do if the pattern matches (default is { print $0 })
+
+$0 → whole line
+
+$1, $2, … → first, second, … fields (columns)
+
+NF → number of fields in the line
+
+NR → line number (record number)
+
+FS → field separator (default: space or tab)
+
+OFS → output field separator (default: space)
+
+1️⃣ Print Entire File
+awk '{ print }' file.txt
+
+
+✅ Equivalent to cat file.txt
+
+2️⃣ Print Specific Columns
+awk '{ print $1, $3 }' file.txt
+
+
+👉 Prints only 1st and 3rd columns from each line.
+
+📄 Example Input (students.txt)
+
+101 John 85
+102 Alice 90
+103 Bob 78
+
+
+📌 Command:
+
+awk '{ print $1, $2 }' students.txt
+
+
+📤 Output:
+
+101 John
+102 Alice
+103 Bob
+
+3️⃣ Using Patterns (Condition)
+awk '$3 > 80 { print $1, $2 }' students.txt
+
+
+👉 Print student roll no & name if marks ($3) > 80.
+
+📤 Output:
+
+101 John
+102 Alice
+
+4️⃣ Built-in Variables
+Print line numbers with content
+awk '{ print NR, $0 }' file.txt
+
+
+📤 Output:
+
+1 101 John 85
+2 102 Alice 90
+3 103 Bob 78
+
+5️⃣ BEGIN and END Blocks
+awk 'BEGIN { print "Roll  Name  Marks" }
+     { print $1, $2, $3 }
+     END { print "---- End of Report ----" }' students.txt
+
+
+📤 Output:
+
+Roll  Name  Marks
+101 John 85
+102 Alice 90
+103 Bob 78
+---- End of Report ----
+
+6️⃣ Changing Field Separator
+
+📄 Example (data.csv):
+
+101,John,85
+102,Alice,90
+103,Bob,78
+
+
+👉 Use -F to set delimiter:
+
+awk -F "," '{ print $1, $2 }' data.csv
+
+
+📤 Output:
+
+101 John
+102 Alice
+103 Bob
+
+7️⃣ Arithmetic Operations
+awk '{ total = $3 + 5; print $1, $2, total }' students.txt
+
+
+👉 Adds 5 bonus marks.
+
+📤 Output:
+
+101 John 90
+102 Alice 95
+103 Bob 83
+
+8️⃣ Pattern Matching with Regex
+awk '/Alice/ { print }' students.txt
+
+
+👉 Prints lines containing "Alice".
+
+📤 Output:
+
+102 Alice 90
+
+9️⃣ Finding Max/Min
+awk 'NR==1 || $3 > max { max=$3; name=$2 } END { print "Topper:", name, max }' students.txt
+
+
+📤 Output:
+
+Topper: Alice 90
+
+🔟 Counting Occurrences
+
+📄 Example (fruits.txt):
+
+apple
+banana
+apple
+orange
+banana
+apple
+
+
+👉 Count how many times each fruit appears:
+
+awk '{ count[$1]++ } END { for (f in count) print f, count[f] }' fruits.txt
+
+
+📤 Output:
+
+banana 2
+orange 1
+apple 3
+
+1️⃣1️⃣ Field Calculations (Average)
+awk '{ sum+=$3; count++ } END { print "Average =", sum/count }' students.txt
+
+
+📤 Output:
+
+Average = 84.3333
+
+1️⃣2️⃣ Using Multiple Conditions
+awk '$3 > 80 && $2 ~ /John/ { print $1, $2 }' students.txt
+
+
+👉 Print roll no & name if marks > 80 and name contains "John".
+
+📤 Output:
+
+101 John
+
+
+✅ Applications of awk
+
+Filtering logs (system, server, application)
+
+Extracting columns from CSV/TSV
+
+Summarizing data (sum, avg, count)
+
+Generating reports
+
+Pattern-based text transformation
+
+Would you like me to also make a side-by-side comparison of grep vs sed vs awk with regex usage (when to use which)?
+
+You said:
+many more in detail
+ChatGPT said:
+
+Perfect, Kathir 👍 You want a deep-dive into awk with many more styles, applications, syntax, and outputs.
+I’ll give you an extended guide where we move from basic → intermediate → advanced usage of awk.
+
+🔹 AWK Deep Dive
+1️⃣ Basic Printing
+
+👉 Print the entire line
+
+awk '{ print }' file.txt
+
+
+👉 Print only first column
+
+awk '{ print $1 }' file.txt
+
+
+👉 Print multiple columns with custom separator
+
+awk '{ print $1 "-" $2 }' file.txt
+
+
+📄 Input:
+
+101 John 85
+102 Alice 90
+
+
+📤 Output:
+
+101-John
+102-Alice
+
+2️⃣ Using Built-in Variables
+Variable	Meaning
+$0	Entire line
+$1..$n	nth column
+NR	Record number (line number)
+NF	Number of fields in line
+FS	Input field separator
+OFS	Output field separator
+RS	Record separator (default newline)
+ORS	Output record separator
+Example – Line numbers and field count
+awk '{ print NR, NF, $0 }' students.txt
+
+
+📄 Input:
+
+101 John 85
+102 Alice 90
+103 Bob 78 89
+
+
+📤 Output:
+
+1 3 101 John 85
+2 3 102 Alice 90
+3 4 103 Bob 78 89
+
+3️⃣ BEGIN and END Blocks
+
+Used for headers, initialization, and summaries.
+
+awk 'BEGIN { print "Roll Name Marks" }
+     { print $1, $2, $3 }
+     END { print "Done Processing" }' students.txt
+
+
+📤 Output:
+
+Roll Name Marks
+101 John 85
+102 Alice 90
+103 Bob 78
+Done Processing
+
+4️⃣ Field Separator
+Default → whitespace
+Custom → use -F or FS
+
+📄 Input (data.csv):
+
+101,John,85
+102,Alice,90
+103,Bob,78
+
+
+👉 Using -F
+
+awk -F "," '{ print $1, $2 }' data.csv
+
+
+📤 Output:
+
+101 John
+102 Alice
+103 Bob
+
+
+👉 Changing in script
+
+awk 'BEGIN { FS=","; OFS="|" } { print $1, $2, $3 }' data.csv
+
+
+📤 Output:
+
+101|John|85
+102|Alice|90
+103|Bob|78
+
+5️⃣ Filters & Conditions
+Only marks > 80
+awk '$3 > 80 { print $1, $2 }' students.txt
+
+
+📤 Output:
+
+101 John
+102 Alice
+
+Name contains “Bob”
+awk '$2 ~ /Bob/ { print $0 }' students.txt
+
+
+📤 Output:
+
+103 Bob 78
+
+Name does not contain “Bob”
+awk '$2 !~ /Bob/ { print $0 }' students.txt
+
+
+📤 Output:
+
+101 John 85
+102 Alice 90
+
+6️⃣ Arithmetic
+Add bonus marks
+awk '{ print $1, $2, $3+5 }' students.txt
+
+
+📤 Output:
+
+101 John 90
+102 Alice 95
+103 Bob 83
+
+Sum and average
+awk '{ sum+=$3; count++ } END { print "Sum=",sum, "Avg=",sum/count }' students.txt
+
+
+📤 Output:
+
+Sum=253 Avg=84.3333
+
+7️⃣ Regex Matching
+Lines starting with “10”
+awk '/^10/ { print }' students.txt
+
+Lines ending with “90”
+awk '/90$/ { print }' students.txt
+
+Case-insensitive search
+awk 'BEGIN{IGNORECASE=1} /alice/' students.txt
+
+8️⃣ Using Multiple Actions
+awk '{ if ($3 >= 90) print $2, "Excellent";
+       else if ($3 >= 80) print $2, "Good";
+       else print $2, "Average" }' students.txt
+
+
+📤 Output:
+
+John Good
+Alice Excellent
+Bob Average
+
+9️⃣ Associative Arrays in awk
+
+📄 Input (fruits.txt):
+
+apple
+banana
+apple
+orange
+banana
+apple
+
+
+👉 Count occurrences
+
+awk '{ count[$1]++ } END { for (f in count) print f, count[f] }' fruits.txt
+
+
+📤 Output:
+
+banana 2
+orange 1
+apple 3
+
+🔟 Advanced Examples
+Print last field of each line
+awk '{ print $NF }' students.txt
+
+
+📤 Output:
+
+85
+90
+78
+
+Print first and last field
+awk '{ print $1, $NF }' students.txt
+
+
+📤 Output:
+
+101 85
+102 90
+103 78
+
+Top scorer
+awk 'NR==1 || $3>max { max=$3; name=$2 } END { print "Topper:",name,max }' students.txt
+
+
+📤 Output:
+
+Topper: Alice 90
+
+1️⃣1️⃣ Real-Life Applications
+
+✅ Extract IP addresses from logs
+
+awk '{ print $1 }' access.log
+
+
+✅ Calculate disk usage (from df)
+
+df -h | awk 'NR>1 { print $1, $5 }'
+
+
+✅ Get average response time
+
+awk '{ sum+=$NF; count++ } END { print "Avg Response =", sum/count }' server.log
+
+
+✅ CSV report generator
+
+awk -F, 'BEGIN{OFS=","; print "Name,Score,Result"}
+         { if ($2>=50) res="Pass"; else res="Fail";
+           print $1,$2,res }' marks.csv
+
+1️⃣2️⃣ Mixing awk with sed and grep
+
+grep → Search/filter only
+
+sed → Stream editor (substitute, insert, delete)
+
+awk → Pattern + Action (filter + transform + report)
+
+Example:
+
+cat students.txt | grep "Alice" | sed 's/Alice/Alicia/' | awk '{ print $1, $2, $3 }'
+
+
+📤 Output:
+
+102 Alicia 90

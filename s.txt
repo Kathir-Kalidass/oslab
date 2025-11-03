@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+struct msgbuf {
+    long mtype;
+    char mtext[100];
+};
+
+int main() {
+    key_t key;
+    int msgid;
+    struct msgbuf message;
+
+    // Create unique key
+    key = ftok("msgqueuefile", 65);
+
+    // Create message queue
+    msgid = msgget(key, 0666 | IPC_CREAT);
+    if (msgid == -1) {
+        perror("msgget");
+        exit(1);
+    }
+
+    message.mtype = 1; // Message type
+    strcpy(message.mtext, "Hello from message queue sender!");
+
+    // Send message
+    if (msgsnd(msgid, &message, sizeof(message.mtext), 0) == -1) {
+        perror("msgsnd");
+        exit(1);
+    }
+
+    printf("Message sent: %s\n", message.mtext);
+    return 0;
+}
